@@ -1,7 +1,7 @@
 use custom_error::custom_error;
 use serde::Serialize;
 use warp::http::StatusCode;
-use warp::reply::{json, Json, with_status, WithStatus};
+use warp::reply::{json, with_status, Json, WithStatus};
 
 custom_error! { pub Error
     InvalidData = "Invalid data",

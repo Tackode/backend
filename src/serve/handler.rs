@@ -2,7 +2,7 @@ use super::types::HealthResponse;
 use warp::reply::Reply;
 
 pub fn index() -> impl Reply {
-    warp::reply::json(&HealthResponse { healthy: true})
+    warp::reply::json(&HealthResponse { healthy: true })
 }
 
 // #[get("/scan?<uuid>")]

@@ -1,5 +1,3 @@
-#![feature(proc_macro_hygiene, decl_macro)]
-
 extern crate openssl; // Should be before diesel
 #[macro_use]
 extern crate diesel;
