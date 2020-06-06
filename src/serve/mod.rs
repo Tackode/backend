@@ -5,12 +5,11 @@ mod types;
 
 use crate::connectors::ConnectorsBuilders;
 use common::Context;
-use warp::Filter;
 use std::{env, net::SocketAddr};
+use warp::Filter;
 
 pub async fn run(builders: ConnectorsBuilders) {
-    let env = env::var("BACKEND_ENV")
-        .expect("Missing BACKEND_ENV");
+    let env = env::var("BACKEND_ENV").expect("Missing BACKEND_ENV");
 
     let addr: SocketAddr = env::var("LISTEN")
         .expect("Missing LISTEN")
@@ -26,7 +25,5 @@ pub async fn run(builders: ConnectorsBuilders) {
     log::info!("Configured for {}", env);
     log::info!("Listening on {}", addr);
 
-    warp::serve(health)
-        .run(addr)
-        .await;
+    warp::serve(health).run(addr).await;
 }
