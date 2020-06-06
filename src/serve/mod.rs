@@ -1,9 +1,12 @@
+mod authorization;
 mod common;
 mod error;
 mod handler;
 
 use crate::connectors::ConnectorsBuilders;
+use authorization::public_user_filter;
 use common::Context;
+use error::handle_rejection;
 use std::{env, net::SocketAddr};
 use warp::Filter;
 
@@ -17,14 +20,17 @@ pub async fn run(builders: ConnectorsBuilders) {
         .parse()
         .expect("Invalid LISTEN");
 
+    // Prepare Context
     let context = Context { builders };
-    let context_filter = warp::any().map(move || context.clone());
+    let moved_context = context.clone();
+    let context_filter = warp::any().map(move || moved_context.clone());
 
     // GET / -> HealthResponse
     let health = warp::get().and(warp::path::end()).map(handler::index);
 
     // GET /scan?<uuid> -> Place
-    let scan = warp::path!("scan")
+    let scan = warp::get()
+        .and(warp::path!("scan"))
         .and(warp::query())
         .and(context_filter.clone())
         .map(handler::scan);
@@ -46,13 +52,24 @@ pub async fn run(builders: ConnectorsBuilders) {
         .map(handler::validate_device);
 
     // GET /profile -> Profile(Organization)
+    let get_profile = warp::get()
+        .and(warp::path!("profile"))
+        .and(public_user_filter(context.clone()))
+        .and(context_filter.clone())
+        .map(handler::get_profile);
+
     // POST /profile {email?} -> 200
     // POST /organization {name} -> 200
     // GET /checkins -> Checkin(Place)
     // POST /login {email, role, organization_name?} -> 200
 
     // Concatenate routes
-    let routes = health.or(scan).or(checkin).or(validate_device);
+    let routes = health
+        .or(scan)
+        .or(checkin)
+        .or(validate_device)
+        .or(get_profile)
+        .recover(handle_rejection);
 
     log::info!("Configured for {}", environment);
     log::info!("Listening on {}", addr);

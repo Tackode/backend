@@ -7,6 +7,14 @@ pub struct Context {
     pub builders: ConnectorsBuilders,
 }
 
+pub struct PublicUser {
+    pub id: Uuid,
+}
+
+pub struct ProfessionalUser {
+    pub id: Uuid,
+}
+
 #[derive(Serialize)]
 pub struct HealthResponse {
     pub healthy: bool,
@@ -55,4 +63,11 @@ pub struct ValidateDeviceForm {
 pub struct Credentials {
     pub login: String,
     pub token: String,
+}
+
+#[derive(Serialize)]
+pub struct Profile {
+    pub id: Uuid,
+    pub email: Option<String>,
+    pub organization: Option<Organization>,
 }

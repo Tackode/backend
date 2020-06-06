@@ -36,6 +36,7 @@ checksum = "f8aac770f1885fd7e387acedd76065302551364496e46b3dd00860b2f8359b9d"
 name = "backend"
 version = "1.0.0"
 dependencies = [
+ "base64 0.12.1",
  "chrono",
  "custom_error",
  "diesel",

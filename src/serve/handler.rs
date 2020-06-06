@@ -28,3 +28,14 @@ pub fn validate_device(data: ValidateDeviceForm, context: Context) -> impl Reply
         token: String::from("TOKEN"),
     })
 }
+
+pub fn get_profile(user: PublicUser, context: Context) -> impl Reply {
+    warp::reply::json(&Profile {
+        id: user.id,
+        email: None,
+        organization: Some(Organization {
+            id: user.id,
+            name: String::from("Creatiwity"),
+        }),
+    })
+}
