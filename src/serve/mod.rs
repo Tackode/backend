@@ -59,6 +59,14 @@ pub async fn run(builders: ConnectorsBuilders) {
         .map(handler::get_profile);
 
     // POST /profile {email?} -> 200
+    let set_profile = warp::post()
+        .and(warp::path!("profile"))
+        .and(public_user_filter(context.clone()))
+        .and(warp::body::content_length_limit(CONTENT_LENGTH_LIMIT))
+        .and(warp::body::json())
+        .and(context_filter.clone())
+        .map(handler::set_profile);
+
     // POST /organization {name} -> 200
     // GET /checkins -> Checkin(Place)
     // POST /login {email, role, organization_name?} -> 200
@@ -69,6 +77,7 @@ pub async fn run(builders: ConnectorsBuilders) {
         .or(checkin)
         .or(validate_device)
         .or(get_profile)
+        .or(set_profile)
         .recover(handle_rejection);
 
     log::info!("Configured for {}", environment);

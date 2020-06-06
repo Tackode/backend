@@ -39,3 +39,7 @@ pub fn get_profile(user: PublicUser, context: Context) -> impl Reply {
         }),
     })
 }
+
+pub fn set_profile(user: PublicUser, profile: ProfileForm, context: Context) -> impl Reply {
+    warp::reply()
+}
