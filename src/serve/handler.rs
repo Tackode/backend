@@ -21,3 +21,10 @@ pub fn scan(query: ScanQuery, context: Context) -> impl Reply {
 pub fn checkin(data: CheckinForm, context: Context) -> impl Reply {
     warp::reply()
 }
+
+pub fn validate_device(data: ValidateDeviceForm, context: Context) -> impl Reply {
+    warp::reply::json(&Credentials {
+        login: String::from("LOGIN"),
+        token: String::from("TOKEN"),
+    })
+}

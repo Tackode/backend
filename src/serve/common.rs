@@ -43,3 +43,16 @@ pub struct CheckinForm {
     pub store_email: bool,
     pub duration: i64,
 }
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ValidateDeviceForm {
+    pub device_id: Uuid,
+    pub confirmation_token: String,
+}
+
+#[derive(Serialize)]
+pub struct Credentials {
+    pub login: String,
+    pub token: String,
+}
