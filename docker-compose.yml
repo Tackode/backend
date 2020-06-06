@@ -1,0 +1,11 @@
+version: "3.7"
+
+services:
+  postgres:
+    image: "postgres:10.7"
+    environment:
+      - POSTGRES_USER=covidjournal
+      - POSTGRES_PASSWORD=covidjournalpw
+      - POSTGRES_DB=covidjournal
+    ports:
+      - 5432:5432

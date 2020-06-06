@@ -20,6 +20,12 @@ createuser --pwprompt covidjournal # set password to covidjournalpw for instance
 createdb --owner=covidjournal covidjournal
 ```
 
+You can use Docker Compose and run the database:
+
+```
+docker-compose up -d postgres
+```
+
 ## Documentation
 
 ### HTTP API
