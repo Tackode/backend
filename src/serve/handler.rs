@@ -6,5 +6,18 @@ pub fn index() -> impl Reply {
 }
 
 pub fn scan(query: ScanQuery, context: Context) -> impl Reply {
-    warp::reply::with_status(format!("{}", query.uuid), warp::http::StatusCode::OK)
+    warp::reply::json(&Place {
+        id: query.place_id,
+        organization: Organization {
+            id: query.place_id,
+            name: String::from("Creatiwity"),
+        },
+        name: String::from("Bureau"),
+        description: None,
+        average_duration: 480,
+    })
+}
+
+pub fn checkin(data: CheckinForm, context: Context) -> impl Reply {
+    warp::reply()
 }

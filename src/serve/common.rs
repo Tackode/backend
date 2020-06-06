@@ -13,6 +13,33 @@ pub struct HealthResponse {
 }
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ScanQuery {
-    pub uuid: Uuid,
+    pub place_id: Uuid,
+}
+
+#[derive(Serialize)]
+pub struct Organization {
+    pub id: Uuid,
+    pub name: String,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Place {
+    pub id: Uuid,
+    pub organization: Organization,
+    pub name: String,
+    pub description: Option<String>,
+    /// Average duration in minutes
+    pub average_duration: i64,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CheckinForm {
+    pub place_id: Uuid,
+    pub email: String,
+    pub store_email: bool,
+    pub duration: i64,
 }
