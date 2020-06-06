@@ -1,0 +1,18 @@
+# Rust
+/target
+**/*.rs.bk
+
+# Env
+.env
+
+# macOS
+.DS_Store
+
+# Testing
+/data
+
+# Docker
+/docker/data/*
+!/docker/data/.keep
+/docker/postgres/*
+!/docker/postgres/.keep
