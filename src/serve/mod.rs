@@ -29,18 +29,41 @@ pub async fn run(builders: ConnectorsBuilders) {
     // GET / -> HealthResponse
     let health = warp::get().and(warp::path::end()).map(handler::index);
 
+    // POST /login {email, role, organization_name?} -> 200
+    let login = warp::post()
+        .and(warp::path!("login"))
+        .and(warp::body::content_length_limit(CONTENT_LENGTH_LIMIT))
+        .and(warp::body::json())
+        .and(context_filter.clone())
+        .map(handler::authentication::login);
+
+    // POST /logout -> 200
+    let logout = warp::post()
+        .and(warp::path!("logout"))
+        .and(public_user_filter(context.clone()))
+        .and(context_filter.clone())
+        .map(handler::authentication::logout);
+
+    // POST /device/<device_id>/validate {confirmation_token} -> Credentials
+    let device_validate = warp::post()
+        .and(warp::path!("device" / String / "validate"))
+        .and(warp::body::content_length_limit(CONTENT_LENGTH_LIMIT))
+        .and(warp::body::json())
+        .and(context_filter.clone())
+        .map(handler::authentication::validate);
+
     // GET /place/<id> -> Place
     let get_place = warp::get()
         .and(warp::path!("place" / Uuid))
         .and(context_filter.clone())
-        .map(handler::get_place);
+        .map(handler::place::get_one);
 
     // GET /places -> Vec<Place>
     let get_places = warp::get()
         .and(warp::path!("places"))
         .and(professional_user_filter(context.clone()))
         .and(context_filter.clone())
-        .map(handler::get_places);
+        .map(handler::place::get_all);
 
     // POST /place/<id> -> Place
     let create_place = warp::post()
@@ -49,7 +72,7 @@ pub async fn run(builders: ConnectorsBuilders) {
         .and(warp::body::content_length_limit(CONTENT_LENGTH_LIMIT))
         .and(warp::body::json())
         .and(context_filter.clone())
-        .map(handler::create_place);
+        .map(handler::place::create);
 
     // POST /place/<id> -> Place
     let set_place = warp::post()
@@ -58,37 +81,21 @@ pub async fn run(builders: ConnectorsBuilders) {
         .and(warp::body::content_length_limit(CONTENT_LENGTH_LIMIT))
         .and(warp::body::json())
         .and(context_filter.clone())
-        .map(handler::set_place);
+        .map(handler::place::update);
 
     // DELETE /place/<id> -> 200
     let delete_place = warp::delete()
         .and(warp::path!("place" / Uuid))
         .and(professional_user_filter(context.clone()))
         .and(context_filter.clone())
-        .map(handler::delete_place);
-
-    // POST /checkin {uuid, email, store_email, duration} -> 200
-    let checkin = warp::post()
-        .and(warp::path!("checkin"))
-        .and(warp::body::content_length_limit(CONTENT_LENGTH_LIMIT))
-        .and(warp::body::json())
-        .and(context_filter.clone())
-        .map(handler::checkin);
-
-    // POST /device/<device_id>/validate {confirmation_token} -> Credentials
-    let device_validate = warp::post()
-        .and(warp::path!("device" / String / "validate"))
-        .and(warp::body::content_length_limit(CONTENT_LENGTH_LIMIT))
-        .and(warp::body::json())
-        .and(context_filter.clone())
-        .map(handler::device_validate);
+        .map(handler::place::delete);
 
     // GET /profile -> Profile(Organization)
     let get_profile = warp::get()
         .and(warp::path!("profile"))
         .and(public_user_filter(context.clone()))
         .and(context_filter.clone())
-        .map(handler::get_profile);
+        .map(handler::profile::get);
 
     // POST /profile {email?} -> 200
     let set_profile = warp::post()
@@ -97,14 +104,14 @@ pub async fn run(builders: ConnectorsBuilders) {
         .and(warp::body::content_length_limit(CONTENT_LENGTH_LIMIT))
         .and(warp::body::json())
         .and(context_filter.clone())
-        .map(handler::set_profile);
+        .map(handler::profile::update);
 
     // DELETE /profile -> 200
     let delete_profile = warp::delete()
         .and(warp::path!("profile"))
         .and(public_user_filter(context.clone()))
         .and(context_filter.clone())
-        .map(handler::delete_profile);
+        .map(handler::profile::delete);
 
     // POST /organization {name} -> 200
     let set_organization = warp::post()
@@ -113,29 +120,22 @@ pub async fn run(builders: ConnectorsBuilders) {
         .and(warp::body::content_length_limit(CONTENT_LENGTH_LIMIT))
         .and(warp::body::json())
         .and(context_filter.clone())
-        .map(handler::set_organization);
+        .map(handler::organization::update);
+
+    // POST /checkin {uuid, email, store_email, duration} -> 200
+    let checkin = warp::post()
+        .and(warp::path!("checkin"))
+        .and(warp::body::content_length_limit(CONTENT_LENGTH_LIMIT))
+        .and(warp::body::json())
+        .and(context_filter.clone())
+        .map(handler::checkin::create);
 
     // GET /checkins -> Checkin(Place)
     let get_checkins = warp::get()
         .and(warp::path!("checkins"))
         .and(public_user_filter(context.clone()))
         .and(context_filter.clone())
-        .map(handler::checkins);
-
-    // POST /login {email, role, organization_name?} -> 200
-    let login = warp::post()
-        .and(warp::path!("login"))
-        .and(warp::body::content_length_limit(CONTENT_LENGTH_LIMIT))
-        .and(warp::body::json())
-        .and(context_filter.clone())
-        .map(handler::login);
-
-    // POST /logout -> 200
-    let logout = warp::post()
-        .and(warp::path!("logout"))
-        .and(public_user_filter(context.clone()))
-        .and(context_filter.clone())
-        .map(handler::logout);
+        .map(handler::checkin::get_all);
 
     // POST /infection -> 200
     let create_infection = warp::post()
@@ -144,31 +144,31 @@ pub async fn run(builders: ConnectorsBuilders) {
         .and(warp::body::content_length_limit(CONTENT_LENGTH_LIMIT))
         .and(warp::body::json())
         .and(context_filter.clone())
-        .map(handler::create_infection);
+        .map(handler::infection::create);
 
     // GET /infections -> Vec<Infection>
     let get_infections = warp::get()
         .and(warp::path!("infections"))
         .and(professional_user_filter(context.clone()))
         .and(context_filter.clone())
-        .map(handler::get_infections);
+        .map(handler::infection::get_all);
 
     // Concatenate routes
     let routes = health
+        .or(login)
+        .or(logout)
+        .or(device_validate)
         .or(get_place)
         .or(get_places)
         .or(create_place)
         .or(set_place)
         .or(delete_place)
-        .or(checkin)
-        .or(device_validate)
         .or(get_profile)
         .or(set_profile)
         .or(delete_profile)
         .or(set_organization)
+        .or(checkin)
         .or(get_checkins)
-        .or(login)
-        .or(logout)
         .or(create_infection)
         .or(get_infections)
         .recover(handle_rejection);
