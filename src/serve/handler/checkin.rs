@@ -1,9 +1,11 @@
 use super::super::common::*;
+use uuid::Uuid;
 use warp::reply::Reply;
 
 pub fn create(data: CheckinForm, context: Context) -> impl Reply {
-    // TODO return deviceId
-    warp::reply()
+    warp::reply::json(&Session {
+        session_id: Uuid::parse_str("85f520d0-193d-4386-bdf6-902bc7a4350e").unwrap(),
+    })
 }
 
 pub fn get_all(user: PublicUser, context: Context) -> impl Reply {

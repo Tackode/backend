@@ -14,7 +14,7 @@ CREATE TABLE "public"."checkin"
 (
     "id" uuid NOT NULL,
     "place_id" uuid NOT NULL,
-    "device_id" uuid NOT NULL,
+    "session_id" uuid NOT NULL,
     "user_id" uuid NOT NULL,
     "start_timestamp" timestamptz NOT NULL,
     "end_timestamp" timestamptz NOT NULL,
@@ -51,11 +51,10 @@ CREATE TABLE "public"."organization"
     PRIMARY KEY ("id")
 );
 
-CREATE TABLE "public"."device"
+CREATE TABLE "public"."session"
 (
     "id" uuid NOT NULL,
     "user_id" uuid NOT NULL,
-    "provided_device_id" uuid NOT NULL,
     "description" text NOT NULL,
     "hashed_token" text,
     "hashed_confirmation_token" text,
@@ -83,16 +82,15 @@ SELECT diesel_manage_updated_at('infection');
 SELECT diesel_manage_updated_at('checkin');
 SELECT diesel_manage_updated_at('place');
 SELECT diesel_manage_updated_at('organization');
-SELECT diesel_manage_updated_at('device');
+SELECT diesel_manage_updated_at('session');
 SELECT diesel_manage_updated_at('user');
 
 ALTER TABLE "public"."organization" ADD FOREIGN KEY ("user_id") REFERENCES "public"."user" ("id") ON DELETE CASCADE;
 ALTER TABLE "public"."infection" ADD FOREIGN KEY ("organization_id") REFERENCES "public"."organization" ("id") ON DELETE CASCADE;
 ALTER TABLE "public"."checkin" ADD FOREIGN KEY ("place_id") REFERENCES "public"."place" ("id") ON DELETE CASCADE;
-ALTER TABLE "public"."checkin" ADD FOREIGN KEY ("device_id") REFERENCES "public"."device" ("id") ON DELETE CASCADE;
+ALTER TABLE "public"."checkin" ADD FOREIGN KEY ("session_id") REFERENCES "public"."session" ("id") ON DELETE CASCADE;
 ALTER TABLE "public"."checkin" ADD FOREIGN KEY ("user_id") REFERENCES "public"."user" ("id") ON DELETE CASCADE;
 ALTER TABLE "public"."place" ADD FOREIGN KEY ("organization_id") REFERENCES "public"."organization" ("id") ON DELETE CASCADE;
-ALTER TABLE "public"."device" ADD FOREIGN KEY ("user_id") REFERENCES "public"."user" ("id") ON DELETE CASCADE;
+ALTER TABLE "public"."session" ADD FOREIGN KEY ("user_id") REFERENCES "public"."user" ("id") ON DELETE CASCADE;
 
 CREATE UNIQUE INDEX "organization_unique_user_id" ON "public"."organization" USING BTREE ("user_id");
-CREATE UNIQUE INDEX "device_unique_user_Id_provided_id" ON "public"."device" USING BTREE ("user_id","provided_device_id");

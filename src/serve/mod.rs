@@ -44,9 +44,9 @@ pub async fn run(builders: ConnectorsBuilders) {
         .and(context_filter.clone())
         .map(handler::authentication::logout);
 
-    // POST /device/<device_id>/validate {confirmation_token} -> Credentials
-    let device_validate = warp::post()
-        .and(warp::path!("device" / String / "validate"))
+    // POST /session/<session_id>/validate {confirmation_token} -> Credentials
+    let session_validate = warp::post()
+        .and(warp::path!("session" / Uuid / "validate"))
         .and(warp::body::content_length_limit(CONTENT_LENGTH_LIMIT))
         .and(warp::body::json())
         .and(context_filter.clone())
@@ -157,7 +157,7 @@ pub async fn run(builders: ConnectorsBuilders) {
     let routes = health
         .or(login)
         .or(logout)
-        .or(device_validate)
+        .or(session_validate)
         .or(get_place)
         .or(get_places)
         .or(create_place)

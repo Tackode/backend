@@ -64,8 +64,14 @@ pub struct CheckinForm {
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct ValidateDeviceForm {
+pub struct ValidateSessionForm {
     pub confirmation_token: String,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Session {
+    pub session_id: Uuid,
 }
 
 #[derive(Serialize)]
@@ -109,7 +115,6 @@ pub enum UserRole {
 #[serde(rename_all = "camelCase")]
 pub struct LoginForm {
     pub email: String,
-    pub provided_device_id: String,
     pub role: UserRole,
     pub organization_name: Option<String>,
 }

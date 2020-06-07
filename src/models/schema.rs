@@ -2,28 +2,13 @@ table! {
     checkin (id) {
         id -> Uuid,
         place_id -> Uuid,
-        device_id -> Uuid,
+        session_id -> Uuid,
         user_id -> Uuid,
         start_timestamp -> Timestamptz,
         end_timestamp -> Timestamptz,
         duration -> Int8,
         potential_infection -> Bool,
         confirmed -> Uuid,
-        created_at -> Timestamptz,
-        updated_at -> Timestamptz,
-    }
-}
-
-table! {
-    device (id) {
-        id -> Uuid,
-        user_id -> Uuid,
-        provided_device_id -> Uuid,
-        description -> Text,
-        hashed_token -> Nullable<Text>,
-        hashed_confirmation_token -> Nullable<Text>,
-        confirmed -> Bool,
-        disabled -> Bool,
         created_at -> Timestamptz,
         updated_at -> Timestamptz,
     }
@@ -67,6 +52,20 @@ table! {
 }
 
 table! {
+    session (id) {
+        id -> Uuid,
+        user_id -> Uuid,
+        description -> Text,
+        hashed_token -> Nullable<Text>,
+        hashed_confirmation_token -> Nullable<Text>,
+        confirmed -> Bool,
+        disabled -> Bool,
+        created_at -> Timestamptz,
+        updated_at -> Timestamptz,
+    }
+}
+
+table! {
     user (id) {
         id -> Uuid,
         login -> Text,
@@ -78,12 +77,19 @@ table! {
     }
 }
 
-joinable!(checkin -> device (device_id));
 joinable!(checkin -> place (place_id));
+joinable!(checkin -> session (session_id));
 joinable!(checkin -> user (user_id));
-joinable!(device -> user (user_id));
 joinable!(infection -> organization (organization_id));
 joinable!(organization -> user (user_id));
 joinable!(place -> organization (organization_id));
+joinable!(session -> user (user_id));
 
-allow_tables_to_appear_in_same_query!(checkin, device, infection, organization, place, user,);
+allow_tables_to_appear_in_same_query!(
+    checkin,
+    infection,
+    organization,
+    place,
+    session,
+    user,
+);
