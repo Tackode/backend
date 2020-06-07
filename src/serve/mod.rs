@@ -4,7 +4,7 @@ mod error;
 mod handler;
 
 use crate::connectors::ConnectorsBuilders;
-use authorization::public_user_filter;
+use authorization::{professional_user_filter, public_user_filter};
 use common::Context;
 use error::handle_rejection;
 use std::{env, net::SocketAddr};
@@ -68,6 +68,14 @@ pub async fn run(builders: ConnectorsBuilders) {
         .map(handler::set_profile);
 
     // POST /organization {name} -> 200
+    let set_organization = warp::post()
+        .and(warp::path!("organization"))
+        .and(professional_user_filter(context.clone()))
+        .and(warp::body::content_length_limit(CONTENT_LENGTH_LIMIT))
+        .and(warp::body::json())
+        .and(context_filter.clone())
+        .map(handler::set_organization);
+
     // GET /checkins -> Checkin(Place)
     // POST /login {email, role, organization_name?} -> 200
 
@@ -78,6 +86,7 @@ pub async fn run(builders: ConnectorsBuilders) {
         .or(validate_device)
         .or(get_profile)
         .or(set_profile)
+        .or(set_organization)
         .recover(handle_rejection);
 
     log::info!("Configured for {}", environment);

@@ -76,3 +76,8 @@ pub struct Profile {
 pub struct ProfileForm {
     pub email: Option<String>,
 }
+
+#[derive(Deserialize)]
+pub struct OrganizationForm {
+    pub name: String,
+}

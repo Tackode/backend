@@ -43,3 +43,11 @@ pub fn get_profile(user: PublicUser, context: Context) -> impl Reply {
 pub fn set_profile(user: PublicUser, profile: ProfileForm, context: Context) -> impl Reply {
     warp::reply()
 }
+
+pub fn set_organization(
+    user: ProfessionalUser,
+    organization: OrganizationForm,
+    context: Context,
+) -> impl Reply {
+    warp::reply()
+}
