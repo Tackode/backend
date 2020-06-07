@@ -51,3 +51,21 @@ pub fn set_organization(
 ) -> impl Reply {
     warp::reply()
 }
+
+pub fn checkins(user: PublicUser, context: Context) -> impl Reply {
+    warp::reply::json(&vec![Checkin {
+        id: user.id,
+        timestamp: chrono::Utc::now(),
+        duration: 60,
+        place: Place {
+            id: user.id,
+            organization: Organization {
+                id: user.id,
+                name: String::from("Creatiwity"),
+            },
+            name: String::from("Bureau 1"),
+            description: None,
+            average_duration: 600,
+        },
+    }])
+}

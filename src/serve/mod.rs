@@ -77,6 +77,12 @@ pub async fn run(builders: ConnectorsBuilders) {
         .map(handler::set_organization);
 
     // GET /checkins -> Checkin(Place)
+    let get_checkins = warp::get()
+        .and(warp::path!("checkins"))
+        .and(public_user_filter(context.clone()))
+        .and(context_filter.clone())
+        .map(handler::checkins);
+
     // POST /login {email, role, organization_name?} -> 200
 
     // Concatenate routes
@@ -87,6 +93,7 @@ pub async fn run(builders: ConnectorsBuilders) {
         .or(get_profile)
         .or(set_profile)
         .or(set_organization)
+        .or(get_checkins)
         .recover(handle_rejection);
 
     log::info!("Configured for {}", environment);

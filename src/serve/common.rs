@@ -1,4 +1,5 @@
 use crate::connectors::ConnectorsBuilders;
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -80,4 +81,12 @@ pub struct ProfileForm {
 #[derive(Deserialize)]
 pub struct OrganizationForm {
     pub name: String,
+}
+
+#[derive(Serialize)]
+pub struct Checkin {
+    pub id: Uuid,
+    pub timestamp: DateTime<Utc>,
+    pub duration: i64,
+    pub place: Place,
 }
