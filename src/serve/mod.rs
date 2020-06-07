@@ -91,6 +91,13 @@ pub async fn run(builders: ConnectorsBuilders) {
         .and(context_filter.clone())
         .map(handler::login);
 
+    // POST /logout -> 200
+    let logout = warp::post()
+        .and(warp::path!("logout"))
+        .and(public_user_filter(context.clone()))
+        .and(context_filter.clone())
+        .map(handler::logout);
+
     // Concatenate routes
     let routes = health
         .or(scan)
@@ -101,6 +108,7 @@ pub async fn run(builders: ConnectorsBuilders) {
         .or(set_organization)
         .or(get_checkins)
         .or(login)
+        .or(logout)
         .recover(handle_rejection);
 
     log::info!("Configured for {}", environment);
