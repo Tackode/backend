@@ -1,6 +1,5 @@
 use custom_error::custom_error;
 use serde::Serialize;
-use std::convert::Infallible;
 use warp::http::StatusCode;
 use warp::{reject, Rejection, Reply};
 

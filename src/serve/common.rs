@@ -46,6 +46,15 @@ pub struct Place {
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct PlaceForm {
+    pub name: String,
+    pub description: Option<String>,
+    /// Average duration in minutes
+    pub average_duration: i64,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CheckinForm {
     pub place_id: Uuid,
     pub email: String,
@@ -56,7 +65,6 @@ pub struct CheckinForm {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ValidateDeviceForm {
-    pub device_id: Uuid,
     pub confirmation_token: String,
 }
 
@@ -104,4 +112,21 @@ pub struct LoginForm {
     pub provided_device_id: String,
     pub role: UserRole,
     pub organization_name: Option<String>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct InfectionForm {
+    pub places_ids: Vec<Uuid>,
+    pub start_timestamp: DateTime<Utc>,
+    pub end_timestamp: DateTime<Utc>,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Infection {
+    pub id: Uuid,
+    pub places: Vec<Place>,
+    pub start_timestamp: DateTime<Utc>,
+    pub end_timestamp: DateTime<Utc>,
 }

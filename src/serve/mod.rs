@@ -8,6 +8,7 @@ use authorization::{professional_user_filter, public_user_filter};
 use common::Context;
 use error::handle_rejection;
 use std::{env, net::SocketAddr};
+use uuid::Uuid;
 use warp::Filter;
 
 const CONTENT_LENGTH_LIMIT: u64 = 1024 * 16;
@@ -28,12 +29,43 @@ pub async fn run(builders: ConnectorsBuilders) {
     // GET / -> HealthResponse
     let health = warp::get().and(warp::path::end()).map(handler::index);
 
-    // GET /scan?<uuid> -> Place
-    let scan = warp::get()
-        .and(warp::path!("scan"))
-        .and(warp::query())
+    // GET /place/<id> -> Place
+    let get_place = warp::get()
+        .and(warp::path!("place" / Uuid))
         .and(context_filter.clone())
-        .map(handler::scan);
+        .map(handler::get_place);
+
+    // GET /places -> Vec<Place>
+    let get_places = warp::get()
+        .and(warp::path!("places"))
+        .and(professional_user_filter(context.clone()))
+        .and(context_filter.clone())
+        .map(handler::get_places);
+
+    // POST /place/<id> -> Place
+    let create_place = warp::post()
+        .and(warp::path!("place"))
+        .and(professional_user_filter(context.clone()))
+        .and(warp::body::content_length_limit(CONTENT_LENGTH_LIMIT))
+        .and(warp::body::json())
+        .and(context_filter.clone())
+        .map(handler::create_place);
+
+    // POST /place/<id> -> Place
+    let set_place = warp::post()
+        .and(warp::path!("place" / Uuid))
+        .and(professional_user_filter(context.clone()))
+        .and(warp::body::content_length_limit(CONTENT_LENGTH_LIMIT))
+        .and(warp::body::json())
+        .and(context_filter.clone())
+        .map(handler::set_place);
+
+    // DELETE /place/<id> -> 200
+    let delete_place = warp::delete()
+        .and(warp::path!("place" / Uuid))
+        .and(professional_user_filter(context.clone()))
+        .and(context_filter.clone())
+        .map(handler::delete_place);
 
     // POST /checkin {uuid, email, store_email, duration} -> 200
     let checkin = warp::post()
@@ -43,13 +75,13 @@ pub async fn run(builders: ConnectorsBuilders) {
         .and(context_filter.clone())
         .map(handler::checkin);
 
-    // POST /validate-device {device_id, confirmation_token} -> Credentials
-    let validate_device = warp::post()
-        .and(warp::path!("validate-device"))
+    // POST /device/<device_id>/validate {confirmation_token} -> Credentials
+    let device_validate = warp::post()
+        .and(warp::path!("device" / String / "validate"))
         .and(warp::body::content_length_limit(CONTENT_LENGTH_LIMIT))
         .and(warp::body::json())
         .and(context_filter.clone())
-        .map(handler::validate_device);
+        .map(handler::device_validate);
 
     // GET /profile -> Profile(Organization)
     let get_profile = warp::get()
@@ -66,6 +98,13 @@ pub async fn run(builders: ConnectorsBuilders) {
         .and(warp::body::json())
         .and(context_filter.clone())
         .map(handler::set_profile);
+
+    // DELETE /profile -> 200
+    let delete_profile = warp::delete()
+        .and(warp::path!("profile"))
+        .and(public_user_filter(context.clone()))
+        .and(context_filter.clone())
+        .map(handler::delete_profile);
 
     // POST /organization {name} -> 200
     let set_organization = warp::post()
@@ -98,17 +137,40 @@ pub async fn run(builders: ConnectorsBuilders) {
         .and(context_filter.clone())
         .map(handler::logout);
 
+    // POST /infection -> 200
+    let create_infection = warp::post()
+        .and(warp::path!("infection"))
+        .and(professional_user_filter(context.clone()))
+        .and(warp::body::content_length_limit(CONTENT_LENGTH_LIMIT))
+        .and(warp::body::json())
+        .and(context_filter.clone())
+        .map(handler::create_infection);
+
+    // GET /infections -> Vec<Infection>
+    let get_infections = warp::get()
+        .and(warp::path!("infections"))
+        .and(professional_user_filter(context.clone()))
+        .and(context_filter.clone())
+        .map(handler::get_infections);
+
     // Concatenate routes
     let routes = health
-        .or(scan)
+        .or(get_place)
+        .or(get_places)
+        .or(create_place)
+        .or(set_place)
+        .or(delete_place)
         .or(checkin)
-        .or(validate_device)
+        .or(device_validate)
         .or(get_profile)
         .or(set_profile)
+        .or(delete_profile)
         .or(set_organization)
         .or(get_checkins)
         .or(login)
         .or(logout)
+        .or(create_infection)
+        .or(get_infections)
         .recover(handle_rejection);
 
     log::info!("Configured for {}", environment);
