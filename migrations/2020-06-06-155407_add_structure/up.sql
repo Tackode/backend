@@ -55,8 +55,9 @@ CREATE TABLE "public"."device"
 (
     "id" uuid NOT NULL,
     "user_id" uuid NOT NULL,
+    "provided_device_id" uuid NOT NULL,
     "description" text NOT NULL,
-    "hashed_token" text NOT NULL,
+    "hashed_token" text,
     "hashed_confirmation_token" text,
     "confirmed" bool NOT NULL DEFAULT 'FALSE',
     "disabled" bool NOT NULL DEFAULT 'FALSE',
@@ -92,3 +93,6 @@ ALTER TABLE "public"."checkin" ADD FOREIGN KEY ("device_id") REFERENCES "public"
 ALTER TABLE "public"."checkin" ADD FOREIGN KEY ("user_id") REFERENCES "public"."user" ("id") ON DELETE CASCADE;
 ALTER TABLE "public"."place" ADD FOREIGN KEY ("organization_id") REFERENCES "public"."organization" ("id") ON DELETE CASCADE;
 ALTER TABLE "public"."device" ADD FOREIGN KEY ("user_id") REFERENCES "public"."user" ("id") ON DELETE CASCADE;
+
+CREATE UNIQUE INDEX "organization_unique_user_id" ON "public"."organization" USING BTREE ("user_id");
+CREATE UNIQUE INDEX "device_unique_user_Id_provided_id" ON "public"."device" USING BTREE ("user_id","provided_device_id");

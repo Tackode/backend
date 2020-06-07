@@ -18,8 +18,9 @@ table! {
     device (id) {
         id -> Uuid,
         user_id -> Uuid,
+        provided_device_id -> Uuid,
         description -> Text,
-        hashed_token -> Text,
+        hashed_token -> Nullable<Text>,
         hashed_confirmation_token -> Nullable<Text>,
         confirmed -> Bool,
         disabled -> Bool,
