@@ -2,6 +2,7 @@ use crate::connectors::ConnectorsBuilders;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+use validator::Validate;
 
 #[derive(Clone)]
 pub struct Context {
@@ -44,27 +45,33 @@ pub struct Place {
     pub average_duration: i64,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct PlaceForm {
+    #[validate(length(min = 1, max = 60))]
     pub name: String,
+    #[validate(length(max = 1000))]
     pub description: Option<String>,
     /// Average duration in minutes
+    #[validate(range(min = 1, max = 480))]
     pub average_duration: i64,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct CheckinForm {
     pub place_id: Uuid,
+    #[validate(email)]
     pub email: String,
     pub store_email: bool,
+    #[validate(range(min = 1, max = 480))]
     pub duration: i64,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct ValidateSessionForm {
+    #[validate(length(equal = 64))]
     pub confirmation_token: String,
 }
 
@@ -87,8 +94,9 @@ pub struct Profile {
     pub organization: Option<Organization>,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Validate)]
 pub struct ProfileForm {
+    #[validate(email)]
     pub email: Option<String>,
 }
 
@@ -111,11 +119,13 @@ pub enum UserRole {
     Professional,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct LoginForm {
+    #[validate(email)]
     pub email: String,
     pub role: UserRole,
+    #[validate(length(min = 1, max = 60))]
     pub organization_name: Option<String>,
 }
 

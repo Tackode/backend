@@ -1,10 +1,12 @@
 use custom_error::custom_error;
 use serde::Serialize;
+use validator::ValidationErrors;
 use warp::http::StatusCode;
 use warp::{reject, Rejection, Reply};
 
 custom_error! { pub Error
     InvalidData = "Invalid data",
+    InvalidDataWithDetails {source: ValidationErrors} = "Invalid data: {source}",
     Unauthorized = "Unauthorized",
     // ModelError {source: model::error::Error} = "[Model] {source}",
 }
@@ -29,6 +31,7 @@ pub async fn handle_rejection(err: Rejection) -> Result<impl Reply, Rejection> {
         response = Ok(InternalErrorResponse {
             code: match error {
                 Error::InvalidData => StatusCode::BAD_REQUEST,
+                Error::InvalidDataWithDetails { .. } => StatusCode::BAD_REQUEST,
                 Error::Unauthorized => StatusCode::UNAUTHORIZED,
                 // Error::ModelError { source } => match source {
                 //     Model::error::Error::ModelNotFound => StatusCode::NOT_FOUND,

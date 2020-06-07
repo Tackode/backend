@@ -3,6 +3,9 @@ extern crate openssl; // Should be before diesel
 extern crate diesel;
 #[macro_use]
 extern crate diesel_migrations;
+#[macro_use]
+extern crate validator_derive;
+extern crate validator;
 
 mod connectors;
 mod models;
