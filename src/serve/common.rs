@@ -90,3 +90,18 @@ pub struct Checkin {
     pub duration: i64,
     pub place: Place,
 }
+
+#[derive(Serialize, Deserialize)]
+pub enum UserRole {
+    Public,
+    Professional,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct LoginForm {
+    pub email: String,
+    pub provided_device_id: String,
+    pub role: UserRole,
+    pub organization_name: Option<String>,
+}

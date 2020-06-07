@@ -40,13 +40,13 @@ pub fn get_profile(user: PublicUser, context: Context) -> impl Reply {
     })
 }
 
-pub fn set_profile(user: PublicUser, profile: ProfileForm, context: Context) -> impl Reply {
+pub fn set_profile(user: PublicUser, data: ProfileForm, context: Context) -> impl Reply {
     warp::reply()
 }
 
 pub fn set_organization(
     user: ProfessionalUser,
-    organization: OrganizationForm,
+    data: OrganizationForm,
     context: Context,
 ) -> impl Reply {
     warp::reply()
@@ -68,4 +68,9 @@ pub fn checkins(user: PublicUser, context: Context) -> impl Reply {
             average_duration: 600,
         },
     }])
+}
+
+pub fn login(data: LoginForm, context: Context) -> impl Reply {
+    // Rate limit if more than 3 unconfirmed in the last 4 minutes
+    warp::reply()
 }

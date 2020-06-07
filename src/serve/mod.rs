@@ -84,6 +84,12 @@ pub async fn run(builders: ConnectorsBuilders) {
         .map(handler::checkins);
 
     // POST /login {email, role, organization_name?} -> 200
+    let login = warp::post()
+        .and(warp::path!("login"))
+        .and(warp::body::content_length_limit(CONTENT_LENGTH_LIMIT))
+        .and(warp::body::json())
+        .and(context_filter.clone())
+        .map(handler::login);
 
     // Concatenate routes
     let routes = health
@@ -94,6 +100,7 @@ pub async fn run(builders: ConnectorsBuilders) {
         .or(set_profile)
         .or(set_organization)
         .or(get_checkins)
+        .or(login)
         .recover(handle_rejection);
 
     log::info!("Configured for {}", environment);
