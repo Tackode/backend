@@ -7,11 +7,12 @@ extern crate diesel_migrations;
 extern crate validator_derive;
 extern crate validator;
 
-mod connectors;
-mod models;
+mod connector;
+mod model;
+mod security;
 mod serve;
 
-use connectors::ConnectorsBuilders;
+use connector::ConnectorsBuilders;
 use dotenv::dotenv;
 
 #[tokio::main]
@@ -23,8 +24,8 @@ async fn main() {
     pretty_env_logger::init();
 
     // Load database
-    let connectors_builders = ConnectorsBuilders::new();
+    let connector_builders = ConnectorsBuilders::new();
 
     // Run command
-    serve::run(connectors_builders).await;
+    serve::run(connector_builders).await;
 }

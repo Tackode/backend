@@ -8,10 +8,16 @@ custom_error! { pub Error
     InvalidData = "Invalid data",
     InvalidDataWithDetails {source: ValidationErrors} = "Invalid data: {source}",
     Unauthorized = "Unauthorized",
-    // ModelError {source: model::error::Error} = "[Model] {source}",
+    ModelError {source: crate::model::error::Error} = "[Model] {source}",
 }
 
 impl reject::Reject for Error {}
+
+impl From<crate::model::error::Error> for Rejection {
+    fn from(error: crate::model::error::Error) -> Self {
+        warp::reject::custom(Error::ModelError { source: error })
+    }
+}
 
 #[derive(Debug, Serialize)]
 struct ErrorResponse {
@@ -33,10 +39,10 @@ pub async fn handle_rejection(err: Rejection) -> Result<impl Reply, Rejection> {
                 Error::InvalidData => StatusCode::BAD_REQUEST,
                 Error::InvalidDataWithDetails { .. } => StatusCode::BAD_REQUEST,
                 Error::Unauthorized => StatusCode::UNAUTHORIZED,
-                // Error::ModelError { source } => match source {
-                //     Model::error::Error::ModelNotFound => StatusCode::NOT_FOUND,
-                //     _ => StatusCode::INTERNAL_SERVER_ERROR,
-                // },
+                Error::ModelError { source } => match source {
+                    crate::model::error::Error::NotFound => StatusCode::NOT_FOUND,
+                    _ => StatusCode::INTERNAL_SERVER_ERROR,
+                },
             },
             message: error.to_string(),
         });

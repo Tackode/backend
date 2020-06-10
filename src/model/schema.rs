@@ -69,6 +69,7 @@ table! {
     user (id) {
         id -> Uuid,
         login -> Text,
+        email -> Nullable<Text>,
         role -> Text,
         confirmed -> Bool,
         disabled -> Bool,

@@ -4,3 +4,5 @@ DROP TABLE "public"."checkin" CASCADE;
 DROP TABLE "public"."user" CASCADE;
 DROP TABLE "public"."place" CASCADE;
 DROP TABLE "public"."session" CASCADE;
+
+DROP EXTENSION pgcrypto;

@@ -3,7 +3,7 @@ mod common;
 mod controller;
 mod error;
 
-use crate::connectors::ConnectorsBuilders;
+use crate::connector::ConnectorsBuilders;
 use common::Context;
 use error::handle_rejection;
 use std::{env, net::SocketAddr};

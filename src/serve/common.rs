@@ -1,4 +1,5 @@
-use crate::connectors::ConnectorsBuilders;
+use crate::connector::ConnectorsBuilders;
+use crate::model::user::UserRole;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -113,12 +114,6 @@ pub struct Checkin {
     pub timestamp: DateTime<Utc>,
     pub duration: i64,
     pub place: Place,
-}
-
-#[derive(Serialize, Deserialize)]
-pub enum UserRole {
-    Public,
-    Professional,
 }
 
 #[derive(Deserialize, Validate)]

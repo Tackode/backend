@@ -1,6 +1,8 @@
+CREATE EXTENSION pgcrypto;
+
 CREATE TABLE "public"."infection"
 (
-    "id" uuid NOT NULL,
+    "id" uuid NOT NULL DEFAULT gen_random_uuid(),
     "organization_id" uuid NOT NULL,
     "places_ids" _uuid NOT NULL,
     "start_timestamp" timestamptz NOT NULL,
@@ -12,7 +14,7 @@ CREATE TABLE "public"."infection"
 
 CREATE TABLE "public"."checkin"
 (
-    "id" uuid NOT NULL,
+    "id" uuid NOT NULL DEFAULT gen_random_uuid(),
     "place_id" uuid NOT NULL,
     "session_id" uuid NOT NULL,
     "user_id" uuid NOT NULL,
@@ -28,7 +30,7 @@ CREATE TABLE "public"."checkin"
 
 CREATE TABLE "public"."place"
 (
-    "id" uuid NOT NULL,
+    "id" uuid NOT NULL DEFAULT gen_random_uuid(),
     "organization_id" uuid NOT NULL,
     "name" text NOT NULL,
     "description" text,
@@ -41,7 +43,7 @@ CREATE TABLE "public"."place"
 
 CREATE TABLE "public"."organization"
 (
-    "id" uuid NOT NULL,
+    "id" uuid NOT NULL DEFAULT gen_random_uuid(),
     "user_id" uuid NOT NULL,
     "name" text NOT NULL,
     "confirmed" bool NOT NULL,
@@ -53,7 +55,7 @@ CREATE TABLE "public"."organization"
 
 CREATE TABLE "public"."session"
 (
-    "id" uuid NOT NULL,
+    "id" uuid NOT NULL DEFAULT gen_random_uuid(),
     "user_id" uuid NOT NULL,
     "description" text NOT NULL,
     "hashed_token" text,
@@ -68,9 +70,10 @@ CREATE TABLE "public"."session"
 
 CREATE TABLE "public"."user"
 (
-    "id" uuid NOT NULL,
+    "id" uuid NOT NULL DEFAULT gen_random_uuid(),
     "login" text NOT NULL,
-    "role" text NOT NULL,
+    "email" text,
+    "role" text NOT NULL DEFAULT 'public',
     "confirmed" bool NOT NULL DEFAULT 'FALSE',
     "disabled" bool NOT NULL DEFAULT 'FALSE',
     "updated_at" timestamptz NOT NULL DEFAULT NOW(),
@@ -93,4 +96,5 @@ ALTER TABLE "public"."checkin" ADD FOREIGN KEY ("user_id") REFERENCES "public"."
 ALTER TABLE "public"."place" ADD FOREIGN KEY ("organization_id") REFERENCES "public"."organization" ("id") ON DELETE CASCADE;
 ALTER TABLE "public"."session" ADD FOREIGN KEY ("user_id") REFERENCES "public"."user" ("id") ON DELETE CASCADE;
 
-CREATE UNIQUE INDEX "organization_unique_user_id" ON "public"."organization" USING BTREE ("user_id");
+CREATE UNIQUE INDEX "organization_unique_user_id" ON "public"."organization" USING BTREE("user_id");
+CREATE UNIQUE INDEX "user_unique_login" ON "public"."user" USING BTREE("login");
