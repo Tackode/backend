@@ -9,7 +9,7 @@ use common::Context;
 use error::handle_rejection;
 use std::{env, net::SocketAddr};
 use uuid::Uuid;
-use warp::Filter;
+use warp::{http::header, http::Method, Filter};
 
 const CONTENT_LENGTH_LIMIT: u64 = 1024 * 16;
 
@@ -25,6 +25,12 @@ pub async fn run(builders: ConnectorsBuilders) {
     let context = Context { builders };
     let moved_context = context.clone();
     let context_filter = warp::any().map(move || moved_context.clone());
+
+    // CORS
+    let cors = warp::cors()
+        .allow_methods(&[Method::GET, Method::POST, Method::DELETE])
+        .allow_headers(vec![header::CONTENT_TYPE, header::AUTHORIZATION])
+        .allow_any_origin();
 
     // GET / -> HealthResponse
     let health = warp::get().and(warp::path::end()).map(handler::index);
@@ -171,6 +177,7 @@ pub async fn run(builders: ConnectorsBuilders) {
         .or(get_checkins)
         .or(create_infection)
         .or(get_infections)
+        .with(cors)
         .recover(handle_rejection);
 
     log::info!("Configured for {}", environment);
