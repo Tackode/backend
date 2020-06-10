@@ -177,8 +177,8 @@ pub async fn run(builders: ConnectorsBuilders) {
         .or(get_checkins)
         .or(create_infection)
         .or(get_infections)
-        .with(cors)
-        .recover(handle_rejection);
+        .recover(handle_rejection)
+        .with(cors);
 
     log::info!("Configured for {}", environment);
     log::info!("Listening on {}", addr);
