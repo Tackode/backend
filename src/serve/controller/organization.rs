@@ -1,5 +1,6 @@
 use super::super::authorization::professional_user_filter;
 use super::super::common::*;
+use super::super::types::*;
 use warp::{filters::BoxedFilter, Filter, Reply};
 
 pub fn routes(context: Context) -> BoxedFilter<(impl Reply,)> {

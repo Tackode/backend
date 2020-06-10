@@ -1,3 +1,4 @@
+use super::types::*;
 use crate::connector::ConnectorsBuilders;
 use crate::model::user::UserRole;
 use chrono::{DateTime, Utc};
@@ -32,12 +33,6 @@ pub struct ScanQuery {
 }
 
 #[derive(Serialize)]
-pub struct Organization {
-    pub id: Uuid,
-    pub name: String,
-}
-
-#[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Place {
     pub id: Uuid,
@@ -69,43 +64,6 @@ pub struct CheckinForm {
     pub store_email: bool,
     #[validate(range(min = 1, max = 480))]
     pub duration: i64,
-}
-
-#[derive(Deserialize, Validate)]
-#[serde(rename_all = "camelCase")]
-pub struct ValidateSessionForm {
-    #[validate(length(equal = 64))]
-    pub confirmation_token: String,
-}
-
-#[derive(Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Session {
-    pub session_id: Uuid,
-}
-
-#[derive(Serialize)]
-pub struct Credentials {
-    pub login: String,
-    pub token: String,
-}
-
-#[derive(Serialize)]
-pub struct Profile {
-    pub id: Uuid,
-    pub email: Option<String>,
-    pub organization: Option<Organization>,
-}
-
-#[derive(Deserialize, Validate)]
-pub struct ProfileForm {
-    #[validate(email)]
-    pub email: Option<String>,
-}
-
-#[derive(Deserialize)]
-pub struct OrganizationForm {
-    pub name: String,
 }
 
 #[derive(Serialize)]

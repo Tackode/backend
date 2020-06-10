@@ -1,6 +1,7 @@
 use super::super::authorization::public_user_filter;
 use super::super::common::*;
 use super::super::error::Error;
+use super::super::types::*;
 use crate::model::{organization, session, user};
 use crate::security::{generate_token, hash};
 use uuid::Uuid;
@@ -32,16 +33,42 @@ pub fn routes(context: Context) -> BoxedFilter<(impl Reply,)> {
         .and(warp::body::content_length_limit(CONTENT_LENGTH_LIMIT))
         .and(warp::body::json())
         .and(context_filter.clone())
-        .map(validate);
+        .and_then(validate);
 
     login.or(logout).or(session_validate).boxed()
 }
 
-fn validate(session_id: Uuid, data: ValidateSessionForm, context: Context) -> impl Reply {
-    warp::reply::json(&Credentials {
-        login: String::from("LOGIN"),
-        token: String::from("TOKEN"),
-    })
+async fn validate(
+    session_id: Uuid,
+    data: ValidateSessionForm,
+    context: Context,
+) -> Result<impl Reply, Rejection> {
+    // Validate data
+    if let Err(errors) = data.validate() {
+        return Err(warp::reject::custom(Error::InvalidDataWithDetails {
+            source: errors,
+        }));
+    }
+
+    // Prepare connector
+    let connectors = context.builders.create();
+
+    // Hash token
+    let hashed_confirmation_token = hash(data.confirmation_token);
+
+    // Find session
+    let session = session::get_unconfirmed(&connectors, &session_id, &hashed_confirmation_token)?;
+
+    // Generate token and save
+    let token = generate_token();
+    let hashed_token = hash(token.clone());
+
+    session::confirm(&connectors, &session.id, &hashed_token)?;
+
+    Ok(warp::reply::json(&Credentials {
+        login: session.id,
+        token,
+    }))
 }
 
 async fn login(data: LoginForm, context: Context) -> Result<impl Reply, Rejection> {
@@ -55,14 +82,14 @@ async fn login(data: LoginForm, context: Context) -> Result<impl Reply, Rejectio
     }
 
     // Prepare connector
-    let connector = context.builders.create();
+    let connectors = context.builders.create();
 
     // Hash email to get login
     let login = hash(data.email.to_lowercase());
 
     // Upsert user
     let user = user::insert(
-        &connector,
+        &connectors,
         &user::UserInsert {
             login,
             role: data.role,
@@ -74,7 +101,7 @@ async fn login(data: LoginForm, context: Context) -> Result<impl Reply, Rejectio
             Some(org_name) => {
                 // Upsert organization (do nothing on update)
                 organization::upsert(
-                    &connector,
+                    &connectors,
                     &organization::OrganizationUpsert {
                         user_id: user.id,
                         name: org_name,
@@ -83,7 +110,7 @@ async fn login(data: LoginForm, context: Context) -> Result<impl Reply, Rejectio
                 )?;
 
                 // Upgrade user to pro user
-                user::update_role(&connector, user.id, data.role)?;
+                user::update_role(&connectors, user.id, data.role)?;
             }
             None => return Err(warp::reject::custom(Error::InvalidData)),
         }
@@ -91,14 +118,15 @@ async fn login(data: LoginForm, context: Context) -> Result<impl Reply, Rejectio
 
     // Create session with confirmation token
     let token = generate_token();
-    let session = session::insert(
-        &connector,
+    let session: Session = session::insert(
+        &connectors,
         &session::SessionInsert {
             user_id: user.id,
             description: String::from("DESC"),
             hashed_confirmation_token: hash(token.clone()),
         },
-    )?;
+    )?
+    .into();
 
     // Print validation URL
     println!(
@@ -107,9 +135,7 @@ async fn login(data: LoginForm, context: Context) -> Result<impl Reply, Rejectio
     );
 
     // Return session_id
-    Ok(warp::reply::json(&Session {
-        session_id: session.id,
-    }))
+    Ok(warp::reply::json(&session))
 }
 
 fn logout(user: PublicUser, context: Context) -> impl Reply {

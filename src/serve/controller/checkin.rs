@@ -1,5 +1,6 @@
 use super::super::authorization::public_user_filter;
 use super::super::common::*;
+use super::super::types::*;
 use uuid::Uuid;
 use warp::{filters::BoxedFilter, Filter, Reply};
 
@@ -27,7 +28,7 @@ pub fn routes(context: Context) -> BoxedFilter<(impl Reply,)> {
 
 fn create(data: CheckinForm, context: Context) -> impl Reply {
     warp::reply::json(&Session {
-        session_id: Uuid::parse_str("85f520d0-193d-4386-bdf6-902bc7a4350e").unwrap(),
+        id: Uuid::parse_str("85f520d0-193d-4386-bdf6-902bc7a4350e").unwrap(),
     })
 }
 

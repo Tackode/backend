@@ -2,6 +2,7 @@ mod authorization;
 mod common;
 mod controller;
 mod error;
+mod types;
 
 use crate::connector::ConnectorsBuilders;
 use common::Context;
@@ -19,8 +20,6 @@ pub async fn run(builders: ConnectorsBuilders) {
 
     // Prepare Context
     let context = Context { builders };
-    let moved_context = context.clone();
-    let context_filter = warp::any().map(move || moved_context.clone());
 
     // CORS
     let cors = warp::cors()

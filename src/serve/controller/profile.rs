@@ -1,6 +1,8 @@
 use super::super::authorization::public_user_filter;
 use super::super::common::*;
-use warp::{filters::BoxedFilter, Filter, Reply};
+use super::super::types::*;
+use crate::model::user;
+use warp::{filters::BoxedFilter, Filter, Rejection, Reply};
 
 pub fn routes(context: Context) -> BoxedFilter<(impl Reply,)> {
     let moved_context = context.clone();
@@ -11,7 +13,7 @@ pub fn routes(context: Context) -> BoxedFilter<(impl Reply,)> {
         .and(warp::path!("profile"))
         .and(public_user_filter(context.clone()))
         .and(context_filter.clone())
-        .map(get);
+        .and_then(get);
 
     // POST /profile {email?} -> 200
     let set_profile = warp::post()
@@ -32,15 +34,12 @@ pub fn routes(context: Context) -> BoxedFilter<(impl Reply,)> {
     get_profile.or(set_profile).or(delete_profile).boxed()
 }
 
-fn get(user: PublicUser, context: Context) -> impl Reply {
-    warp::reply::json(&Profile {
-        id: user.id,
-        email: None,
-        organization: Some(Organization {
-            id: user.id,
-            name: String::from("Creatiwity"),
-        }),
-    })
+async fn get(user: PublicUser, context: Context) -> Result<impl Reply, Rejection> {
+    let connectors = context.builders.create();
+
+    let profile: Profile = user::get_with_organization(&connectors, &user.id)?.into();
+
+    Ok(warp::reply::json(&profile))
 }
 
 fn update(user: PublicUser, data: ProfileForm, context: Context) -> impl Reply {

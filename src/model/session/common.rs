@@ -22,3 +22,11 @@ pub struct SessionInsert {
     pub description: String,
     pub hashed_confirmation_token: String,
 }
+
+#[derive(AsChangeset)]
+#[table_name = "session"]
+pub struct SessionTokenUpdate {
+    pub hashed_confirmation_token: Option<String>,
+    pub hashed_token: Option<String>,
+    pub confirmed: bool,
+}

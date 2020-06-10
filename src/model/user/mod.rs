@@ -1,15 +1,16 @@
 mod common;
 
 use super::error::Error;
-use super::schema::user::dsl;
+use super::organization::Organization;
+use super::schema::{organization, user::dsl};
 use crate::connector::Connectors;
 use diesel::prelude::*;
 use uuid::Uuid;
 
 pub use common::*;
 
-pub fn get(connector: &Connectors, login: &String) -> Result<User, Error> {
-    let connection = connector.local.pool.get()?;
+pub fn get(connectors: &Connectors, login: &String) -> Result<User, Error> {
+    let connection = connectors.local.pool.get()?;
 
     dsl::user
         .filter(dsl::login.eq(login))
@@ -17,8 +18,21 @@ pub fn get(connector: &Connectors, login: &String) -> Result<User, Error> {
         .map_err(|error| error.into())
 }
 
-pub fn insert(connector: &Connectors, user: &UserInsert) -> Result<User, Error> {
-    let connection = connector.local.pool.get()?;
+pub fn get_with_organization(
+    connectors: &Connectors,
+    id: &Uuid,
+) -> Result<(User, Option<Organization>), Error> {
+    let connection = connectors.local.pool.get()?;
+
+    dsl::user
+        .left_join(organization::dsl::organization)
+        .filter(dsl::id.eq(id))
+        .first::<(User, Option<Organization>)>(&connection)
+        .map_err(|error| error.into())
+}
+
+pub fn insert(connectors: &Connectors, user: &UserInsert) -> Result<User, Error> {
+    let connection = connectors.local.pool.get()?;
 
     // Insert user if not exists
     diesel::insert_into(dsl::user)
@@ -27,11 +41,11 @@ pub fn insert(connector: &Connectors, user: &UserInsert) -> Result<User, Error> 
         .do_nothing()
         .execute(&connection)?;
 
-    get(connector, &user.login)
+    get(connectors, &user.login)
 }
 
-pub fn upsert(connector: &Connectors, user: &UserUpsert) -> Result<User, Error> {
-    let connection = connector.local.pool.get()?;
+pub fn upsert(connectors: &Connectors, user: &UserUpsert) -> Result<User, Error> {
+    let connection = connectors.local.pool.get()?;
 
     // Insert user if not exists, otherwise update its email which is the unhashed version of the login
     diesel::insert_into(dsl::user)
@@ -43,8 +57,8 @@ pub fn upsert(connector: &Connectors, user: &UserUpsert) -> Result<User, Error> 
         .map_err(|error| error.into())
 }
 
-pub fn update_role(connector: &Connectors, id: Uuid, role: UserRole) -> Result<(), Error> {
-    let connection = connector.local.pool.get()?;
+pub fn update_role(connectors: &Connectors, id: Uuid, role: UserRole) -> Result<(), Error> {
+    let connection = connectors.local.pool.get()?;
 
     diesel::update(dsl::user)
         .set(dsl::role.eq(role))
