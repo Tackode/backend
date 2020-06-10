@@ -4,6 +4,8 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use validator::Validate;
 
+pub const CONTENT_LENGTH_LIMIT: u64 = 1024 * 16;
+
 #[derive(Clone)]
 pub struct Context {
     pub builders: ConnectorsBuilders,
