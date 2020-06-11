@@ -75,3 +75,5 @@ fn get_all(public: PublicUser, context: Context) -> impl Reply {
         },
     }])
 }
+
+// TODO: delete all for user

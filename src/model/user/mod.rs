@@ -81,3 +81,19 @@ pub fn update_role(connectors: &Connectors, id: Uuid, role: UserRole) -> Result<
             }
         })
 }
+
+pub fn confirm(connectors: &Connectors, id: &Uuid) -> Result<(), Error> {
+    let connection = connectors.local.pool.get()?;
+
+    diesel::update(dsl::user.find(id))
+        .set(dsl::confirmed.eq(true))
+        .execute(&connection)
+        .map_err(|error| error.into())
+        .and_then(|count| {
+            if count == 1 {
+                Ok(())
+            } else {
+                Err(Error::NotFound)
+            }
+        })
+}

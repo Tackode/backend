@@ -17,6 +17,7 @@ pub fn routes(context: Context) -> BoxedFilter<(impl Reply,)> {
         .and(warp::path!("login"))
         .and(warp::body::content_length_limit(CONTENT_LENGTH_LIMIT))
         .and(warp::body::json())
+        .and(warp::header::<String>("user-agent"))
         .and(context_filter.clone())
         .and_then(login);
 
@@ -64,8 +65,11 @@ async fn validate(
     let hashed_token = hash(token.clone());
 
     session::confirm(&connectors, &session.id, &hashed_token)?;
+    user::confirm(&connectors, &session.user_id)?;
+    organization::confirm(&connectors, &session.user_id)?;
+    // checkin::confirm(&connectors, &session.id)?;
 
-    // TODO: Confirm user and checkins
+    // TODO: Confirm checkins
 
     Ok(warp::reply::json(&Credentials {
         login: session.id,
@@ -73,7 +77,11 @@ async fn validate(
     }))
 }
 
-async fn login(data: LoginForm, context: Context) -> Result<impl Reply, Rejection> {
+async fn login(
+    data: LoginForm,
+    user_agent: String,
+    context: Context,
+) -> Result<impl Reply, Rejection> {
     // TODO: Rate limit if more than 3 unconfirmed in the last 4 minutes
 
     // Validate data
@@ -124,7 +132,7 @@ async fn login(data: LoginForm, context: Context) -> Result<impl Reply, Rejectio
         &connectors,
         &session::SessionInsert {
             user_id: user.id,
-            description: String::from("DESC"),
+            description: user_agent,
             hashed_confirmation_token: hash(token.clone()),
         },
     )?
