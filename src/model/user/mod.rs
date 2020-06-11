@@ -13,7 +13,7 @@ pub fn get(connectors: &Connectors, id: &Uuid) -> Result<User, Error> {
     let connection = connectors.local.pool.get()?;
 
     dsl::user
-        .find(id)
+        .filter(dsl::id.eq(id).and(dsl::disabled.eq(false)))
         .first::<User>(&connection)
         .map_err(|error| error.into())
 }
@@ -22,7 +22,7 @@ pub fn get_with_login(connectors: &Connectors, login: &String) -> Result<User, E
     let connection = connectors.local.pool.get()?;
 
     dsl::user
-        .filter(dsl::login.eq(login))
+        .filter(dsl::login.eq(login).and(dsl::disabled.eq(false)))
         .first::<User>(&connection)
         .map_err(|error| error.into())
 }
@@ -35,7 +35,7 @@ pub fn get_with_organization(
 
     dsl::user
         .left_join(organization::dsl::organization)
-        .filter(dsl::id.eq(id))
+        .filter(dsl::id.eq(id).and(dsl::disabled.eq(false)))
         .first::<(User, Option<Organization>)>(&connection)
         .map_err(|error| error.into())
 }
@@ -69,9 +69,15 @@ pub fn upsert(connectors: &Connectors, user: &UserUpsert) -> Result<User, Error>
 pub fn update_role(connectors: &Connectors, id: Uuid, role: UserRole) -> Result<(), Error> {
     let connection = connectors.local.pool.get()?;
 
-    diesel::update(dsl::user.find(id))
+    diesel::update(dsl::user.filter(dsl::id.eq(id).and(dsl::disabled.eq(false))))
         .set(dsl::role.eq(role))
         .execute(&connection)
-        .map(|_| ())
         .map_err(|error| error.into())
+        .and_then(|count| {
+            if count == 1 {
+                Ok(())
+            } else {
+                Err(Error::NotFound)
+            }
+        })
 }

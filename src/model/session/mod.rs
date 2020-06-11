@@ -57,8 +57,14 @@ pub fn confirm(connectors: &Connectors, id: &Uuid, hashed_token: &String) -> Res
             confirmed: true,
         })
         .execute(&connection)
-        .map(|_| ())
         .map_err(|error| error.into())
+        .and_then(|count| {
+            if count == 1 {
+                Ok(())
+            } else {
+                Err(Error::NotFound)
+            }
+        })
 }
 
 pub fn insert(connectors: &Connectors, session: &SessionInsert) -> Result<Session, Error> {

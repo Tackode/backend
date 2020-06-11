@@ -57,11 +57,24 @@ pub fn update(
 ) -> Result<(), Error> {
     let connection = connectors.local.pool.get()?;
 
-    diesel::update(dsl::place.filter(dsl::id.eq(id).and(dsl::organization_id.eq(organization_id))))
-        .set(place)
-        .execute(&connection)
-        .map(|_| ())
-        .map_err(|error| error.into())
+    diesel::update(
+        dsl::place.filter(
+            dsl::id
+                .eq(id)
+                .and(dsl::organization_id.eq(organization_id))
+                .and(dsl::disabled.eq(false)),
+        ),
+    )
+    .set(place)
+    .execute(&connection)
+    .map_err(|error| error.into())
+    .and_then(|count| {
+        if count == 1 {
+            Ok(())
+        } else {
+            Err(Error::NotFound)
+        }
+    })
 }
 
 pub fn set_disabled(
@@ -72,9 +85,22 @@ pub fn set_disabled(
 ) -> Result<(), Error> {
     let connection = connectors.local.pool.get()?;
 
-    diesel::update(dsl::place.filter(dsl::id.eq(id).and(dsl::organization_id.eq(organization_id))))
-        .set(dsl::disabled.eq(disabled))
-        .execute(&connection)
-        .map(|_| ())
-        .map_err(|error| error.into())
+    diesel::update(
+        dsl::place.filter(
+            dsl::id
+                .eq(id)
+                .and(dsl::organization_id.eq(organization_id))
+                .and(dsl::disabled.eq(false)),
+        ),
+    )
+    .set(dsl::disabled.eq(disabled))
+    .execute(&connection)
+    .map_err(|error| error.into())
+    .and_then(|count| {
+        if count == 1 {
+            Ok(())
+        } else {
+            Err(Error::NotFound)
+        }
+    })
 }
