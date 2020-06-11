@@ -1,8 +1,11 @@
 use super::super::authorization::professional_user_filter;
 use super::super::common::*;
+use super::super::error::Error;
 use super::super::types::*;
+use crate::model::place;
 use uuid::Uuid;
-use warp::{filters::BoxedFilter, Filter, Reply};
+use validator::Validate;
+use warp::{filters::BoxedFilter, Filter, Rejection, Reply};
 
 pub fn routes(context: Context) -> BoxedFilter<(impl Reply,)> {
     let moved_context = context.clone();
@@ -28,7 +31,7 @@ pub fn routes(context: Context) -> BoxedFilter<(impl Reply,)> {
         .and(warp::body::content_length_limit(CONTENT_LENGTH_LIMIT))
         .and(warp::body::json())
         .and(context_filter.clone())
-        .map(create);
+        .and_then(create);
 
     // POST /place/<id> -> Place
     let set_place = warp::post()
@@ -67,7 +70,7 @@ fn get_one(place_id: Uuid, context: Context) -> impl Reply {
     })
 }
 
-fn get_all(user: ProfessionalUser, context: Context) -> impl Reply {
+fn get_all(professional: ProfessionalUser, context: Context) -> impl Reply {
     let place_id = Uuid::parse_str("85f520d0-193d-4386-bdf6-902bc7a4350e").unwrap();
 
     warp::reply::json(&vec![Place {
@@ -82,14 +85,44 @@ fn get_all(user: ProfessionalUser, context: Context) -> impl Reply {
     }])
 }
 
-fn create(user: ProfessionalUser, data: PlaceForm, context: Context) -> impl Reply {
+async fn create(
+    professional: ProfessionalUser,
+    data: PlaceForm,
+    context: Context,
+) -> Result<impl Reply, Rejection> {
+    // Validate data
+    if let Err(errors) = data.validate() {
+        return Err(warp::reject::custom(Error::InvalidDataWithDetails {
+            source: errors,
+        }));
+    }
+
+    // Create place
+    let connectors = context.builders.create();
+    place::insert(
+        &connectors,
+        &place::PlaceInsert {
+            organization_id: professional.organization.id,
+            name: data.name,
+            description: data.description,
+            average_duration: data.average_duration,
+        },
+    )?;
+
+    Ok(warp::reply())
+}
+
+fn update(
+    place_id: Uuid,
+    professional: ProfessionalUser,
+    data: PlaceForm,
+    context: Context,
+) -> impl Reply {
+    // Validate data
+    // Update place
     warp::reply()
 }
 
-fn update(place_id: Uuid, user: ProfessionalUser, data: PlaceForm, context: Context) -> impl Reply {
-    warp::reply()
-}
-
-fn delete(place_id: Uuid, user: ProfessionalUser, context: Context) -> impl Reply {
+fn delete(place_id: Uuid, professional: ProfessionalUser, context: Context) -> impl Reply {
     warp::reply()
 }

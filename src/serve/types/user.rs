@@ -6,6 +6,12 @@ use uuid::Uuid;
 use validator::Validate;
 
 #[derive(Serialize)]
+pub struct User {
+    pub id: Uuid,
+    pub email: Option<String>,
+}
+
+#[derive(Serialize)]
 pub struct Profile {
     pub id: Uuid,
     pub email: Option<String>,
@@ -16,6 +22,15 @@ pub struct Profile {
 pub struct ProfileForm {
     #[validate(email)]
     pub email: Option<String>,
+}
+
+impl From<UserModel> for User {
+    fn from(user: UserModel) -> Self {
+        User {
+            id: user.id,
+            email: user.email,
+        }
+    }
 }
 
 impl From<(UserModel, Option<OrganizationModel>)> for Profile {

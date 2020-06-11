@@ -18,6 +18,6 @@ pub fn routes(context: Context) -> BoxedFilter<(impl Reply,)> {
         .boxed()
 }
 
-fn update(user: ProfessionalUser, data: OrganizationForm, context: Context) -> impl Reply {
+fn update(professional: ProfessionalUser, data: OrganizationForm, context: Context) -> impl Reply {
     warp::reply()
 }

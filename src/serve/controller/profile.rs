@@ -34,18 +34,18 @@ pub fn routes(context: Context) -> BoxedFilter<(impl Reply,)> {
     get_profile.or(set_profile).or(delete_profile).boxed()
 }
 
-async fn get(user: PublicUser, context: Context) -> Result<impl Reply, Rejection> {
+async fn get(public: PublicUser, context: Context) -> Result<impl Reply, Rejection> {
     let connectors = context.builders.create();
 
-    let profile: Profile = user::get_with_organization(&connectors, &user.id)?.into();
+    let profile: Profile = user::get_with_organization(&connectors, &public.user.id)?.into();
 
     Ok(warp::reply::json(&profile))
 }
 
-fn update(user: PublicUser, data: ProfileForm, context: Context) -> impl Reply {
+fn update(public: PublicUser, data: ProfileForm, context: Context) -> impl Reply {
     warp::reply()
 }
 
-fn delete(user: PublicUser, context: Context) -> impl Reply {
+fn delete(public: PublicUser, context: Context) -> impl Reply {
     warp::reply()
 }

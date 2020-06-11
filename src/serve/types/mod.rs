@@ -1,7 +1,9 @@
 mod organization;
-mod profile;
+mod place;
 mod session;
+mod user;
 
 pub use organization::*;
-pub use profile::*;
+pub use place::*;
 pub use session::*;
+pub use user::*;

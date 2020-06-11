@@ -14,6 +14,7 @@ pub struct ValidateSessionForm {
 #[serde(rename_all = "camelCase")]
 pub struct Session {
     pub id: Uuid,
+    pub confirmed: bool,
 }
 
 #[derive(Serialize)]
@@ -24,6 +25,9 @@ pub struct Credentials {
 
 impl From<SessionModel> for Session {
     fn from(session: SessionModel) -> Self {
-        Session { id: session.id }
+        Session {
+            id: session.id,
+            confirmed: session.confirmed,
+        }
     }
 }

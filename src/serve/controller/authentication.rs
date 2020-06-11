@@ -65,6 +65,8 @@ async fn validate(
 
     session::confirm(&connectors, &session.id, &hashed_token)?;
 
+    // TODO: Confirm user and checkins
+
     Ok(warp::reply::json(&Credentials {
         login: session.id,
         token,
@@ -138,7 +140,7 @@ async fn login(data: LoginForm, context: Context) -> Result<impl Reply, Rejectio
     Ok(warp::reply::json(&session))
 }
 
-fn logout(user: PublicUser, context: Context) -> impl Reply {
+fn logout(public: PublicUser, context: Context) -> impl Reply {
     // Remove token from session
     warp::reply()
 }

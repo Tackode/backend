@@ -14,13 +14,14 @@ pub struct Context {
 }
 
 pub struct PublicUser {
-    pub id: Uuid,
-    pub session_id: Uuid,
+    pub user: User,
+    pub session: Session,
 }
 
 pub struct ProfessionalUser {
-    pub id: Uuid,
-    pub session_id: Uuid,
+    pub user: User,
+    pub session: Session,
+    pub organization: Organization,
 }
 
 #[derive(Serialize)]
@@ -32,29 +33,6 @@ pub struct HealthResponse {
 #[serde(rename_all = "camelCase")]
 pub struct ScanQuery {
     pub place_id: Uuid,
-}
-
-#[derive(Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Place {
-    pub id: Uuid,
-    pub organization: Organization,
-    pub name: String,
-    pub description: Option<String>,
-    /// Average duration in minutes
-    pub average_duration: i64,
-}
-
-#[derive(Deserialize, Validate)]
-#[serde(rename_all = "camelCase")]
-pub struct PlaceForm {
-    #[validate(length(min = 1, max = 60))]
-    pub name: String,
-    #[validate(length(max = 1000))]
-    pub description: Option<String>,
-    /// Average duration in minutes
-    #[validate(range(min = 1, max = 480))]
-    pub average_duration: i64,
 }
 
 #[derive(Deserialize, Validate)]

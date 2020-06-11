@@ -4,6 +4,7 @@ use super::error::Error;
 use super::schema::organization::dsl;
 use crate::connector::Connectors;
 use diesel::prelude::*;
+use uuid::Uuid;
 
 pub use common::*;
 

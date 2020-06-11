@@ -9,7 +9,16 @@ use uuid::Uuid;
 
 pub use common::*;
 
-pub fn get(connectors: &Connectors, login: &String) -> Result<User, Error> {
+pub fn get(connectors: &Connectors, id: &Uuid) -> Result<User, Error> {
+    let connection = connectors.local.pool.get()?;
+
+    dsl::user
+        .find(id)
+        .first::<User>(&connection)
+        .map_err(|error| error.into())
+}
+
+pub fn get_with_login(connectors: &Connectors, login: &String) -> Result<User, Error> {
     let connection = connectors.local.pool.get()?;
 
     dsl::user
@@ -41,7 +50,7 @@ pub fn insert(connectors: &Connectors, user: &UserInsert) -> Result<User, Error>
         .do_nothing()
         .execute(&connection)?;
 
-    get(connectors, &user.login)
+    get_with_login(connectors, &user.login)
 }
 
 pub fn upsert(connectors: &Connectors, user: &UserUpsert) -> Result<User, Error> {

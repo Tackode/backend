@@ -27,11 +27,11 @@ pub fn routes(context: Context) -> BoxedFilter<(impl Reply,)> {
     create_infection.or(get_infections).boxed()
 }
 
-fn create(user: ProfessionalUser, data: InfectionForm, context: Context) -> impl Reply {
+fn create(professional: ProfessionalUser, data: InfectionForm, context: Context) -> impl Reply {
     warp::reply()
 }
 
-fn get_all(user: ProfessionalUser, context: Context) -> impl Reply {
+fn get_all(professional: ProfessionalUser, context: Context) -> impl Reply {
     let placeholder_id = Uuid::parse_str("85f520d0-193d-4386-bdf6-902bc7a4350e").unwrap();
 
     warp::reply::json(&vec![Infection {
@@ -39,9 +39,9 @@ fn get_all(user: ProfessionalUser, context: Context) -> impl Reply {
         start_timestamp: chrono::Utc::now(),
         end_timestamp: chrono::Utc::now(),
         places: vec![Place {
-            id: user.id,
+            id: professional.user.id,
             organization: Organization {
-                id: user.id,
+                id: professional.user.id,
                 name: String::from("Creatiwity"),
             },
             name: String::from("Bureau 1"),
