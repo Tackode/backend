@@ -20,7 +20,6 @@ pub fn public_user_filter(
     warp::header::<String>("authorization")
         .map(move |header| (header, context.clone()))
         .and_then(|(header, context): (String, Context)| async move {
-            println!("header {}", header);
             // Read basic header
             match decrypt_basic_header(header) {
                 Some(credentials) => {
@@ -58,7 +57,6 @@ pub fn professional_user_filter(
     warp::header::<String>("authorization")
         .map(move |header| (header, context.clone()))
         .and_then(|(header, context): (String, Context)| async move {
-            println!("header {}", header);
             // Read basic header
             match decrypt_basic_header(header) {
                 Some(credentials) => {
