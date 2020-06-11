@@ -15,7 +15,7 @@ pub fn routes(context: Context) -> BoxedFilter<(impl Reply,)> {
     let get_place = warp::get()
         .and(warp::path!("place" / Uuid))
         .and(context_filter.clone())
-        .map(get_one);
+        .and_then(get_one);
 
     // GET /places -> Vec<Place>
     let get_places = warp::get()
@@ -57,25 +57,18 @@ pub fn routes(context: Context) -> BoxedFilter<(impl Reply,)> {
         .boxed()
 }
 
-fn get_one(place_id: Uuid, context: Context) -> impl Reply {
-    warp::reply::json(&Place {
-        id: place_id,
-        organization: Organization {
-            id: place_id,
-            name: String::from("Creatiwity"),
-        },
-        name: String::from("Bureau"),
-        description: None,
-        average_duration: 480,
-    })
+async fn get_one(place_id: Uuid, context: Context) -> Result<impl Reply, Rejection> {
+    let connectors = context.builders.create();
+
+    let place: Place = place::get_with_organization(&connectors, &place_id)?.into();
+
+    Ok(warp::reply::json(&place))
 }
 
 async fn get_all(
     professional: ProfessionalUser,
     context: Context,
 ) -> Result<impl Reply, Rejection> {
-    let place_id = Uuid::parse_str("85f520d0-193d-4386-bdf6-902bc7a4350e").unwrap();
-
     let connectors = context.builders.create();
 
     let places: Vec<Place> =
