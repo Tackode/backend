@@ -63,3 +63,18 @@ pub fn update(
         .map(|_| ())
         .map_err(|error| error.into())
 }
+
+pub fn set_disabled(
+    connectors: &Connectors,
+    id: &Uuid,
+    organization_id: &Uuid,
+    disabled: bool,
+) -> Result<(), Error> {
+    let connection = connectors.local.pool.get()?;
+
+    diesel::update(dsl::place.filter(dsl::id.eq(id).and(dsl::organization_id.eq(organization_id))))
+        .set(dsl::disabled.eq(disabled))
+        .execute(&connection)
+        .map(|_| ())
+        .map_err(|error| error.into())
+}

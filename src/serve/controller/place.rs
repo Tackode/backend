@@ -47,7 +47,7 @@ pub fn routes(context: Context) -> BoxedFilter<(impl Reply,)> {
         .and(warp::path!("place" / Uuid))
         .and(professional_user_filter(context.clone()))
         .and(context_filter.clone())
-        .map(delete);
+        .and_then(delete);
 
     get_place
         .or(get_places)
@@ -148,6 +148,15 @@ async fn update(
     Ok(warp::reply())
 }
 
-fn delete(place_id: Uuid, professional: ProfessionalUser, context: Context) -> impl Reply {
-    warp::reply()
+async fn delete(
+    place_id: Uuid,
+    professional: ProfessionalUser,
+    context: Context,
+) -> Result<impl Reply, Rejection> {
+    let connectors = context.builders.create();
+
+    // Update place
+    place::set_disabled(&connectors, &place_id, &professional.organization.id, true)?;
+
+    Ok(warp::reply())
 }
