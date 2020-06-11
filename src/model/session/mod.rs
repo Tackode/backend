@@ -50,13 +50,12 @@ pub fn get_confirmed(
 pub fn confirm(connectors: &Connectors, id: &Uuid, hashed_token: &String) -> Result<(), Error> {
     let connection = connectors.local.pool.get()?;
 
-    diesel::update(dsl::session)
+    diesel::update(dsl::session.filter(dsl::id.eq(id)))
         .set(&SessionTokenUpdate {
             hashed_confirmation_token: None,
             hashed_token: Some(hashed_token.clone()),
             confirmed: true,
         })
-        .filter(dsl::id.eq(id))
         .execute(&connection)
         .map(|_| ())
         .map_err(|error| error.into())

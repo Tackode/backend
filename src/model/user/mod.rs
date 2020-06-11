@@ -60,9 +60,8 @@ pub fn upsert(connectors: &Connectors, user: &UserUpsert) -> Result<User, Error>
 pub fn update_role(connectors: &Connectors, id: Uuid, role: UserRole) -> Result<(), Error> {
     let connection = connectors.local.pool.get()?;
 
-    diesel::update(dsl::user)
+    diesel::update(dsl::user.filter(dsl::id.eq(id)))
         .set(dsl::role.eq(role))
-        .filter(dsl::id.eq(id))
         .execute(&connection)
         .map(|_| ())
         .map_err(|error| error.into())
