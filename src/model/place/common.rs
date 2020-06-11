@@ -22,3 +22,11 @@ pub struct PlaceInsert {
     pub description: Option<String>,
     pub average_duration: i64,
 }
+
+#[derive(AsChangeset)]
+#[table_name = "place"]
+pub struct PlaceUpdate {
+    pub name: String,
+    pub description: Option<String>,
+    pub average_duration: i64,
+}

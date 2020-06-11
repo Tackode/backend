@@ -40,7 +40,7 @@ pub fn routes(context: Context) -> BoxedFilter<(impl Reply,)> {
         .and(warp::body::content_length_limit(CONTENT_LENGTH_LIMIT))
         .and(warp::body::json())
         .and(context_filter.clone())
-        .map(update);
+        .and_then(update);
 
     // DELETE /place/<id> -> 200
     let delete_place = warp::delete()
@@ -97,9 +97,10 @@ async fn create(
         }));
     }
 
-    // Create place
     let connectors = context.builders.create();
-    place::insert(
+
+    // Create place
+    let place_id = place::insert(
         &connectors,
         &place::PlaceInsert {
             organization_id: professional.organization.id,
@@ -109,18 +110,40 @@ async fn create(
         },
     )?;
 
-    Ok(warp::reply())
+    // Retrieve newly created place
+    let place: Place = place::get_with_organization(&connectors, &place_id)?.into();
+
+    Ok(warp::reply::json(&place))
 }
 
-fn update(
+async fn update(
     place_id: Uuid,
     professional: ProfessionalUser,
     data: PlaceForm,
     context: Context,
-) -> impl Reply {
+) -> Result<impl Reply, Rejection> {
     // Validate data
+    if let Err(errors) = data.validate() {
+        return Err(warp::reject::custom(Error::InvalidDataWithDetails {
+            source: errors,
+        }));
+    }
+
+    let connectors = context.builders.create();
+
     // Update place
-    warp::reply()
+    place::update(
+        &connectors,
+        &place_id,
+        &professional.organization.id,
+        &place::PlaceUpdate {
+            name: data.name,
+            description: data.description,
+            average_duration: data.average_duration,
+        },
+    )?;
+
+    Ok(warp::reply())
 }
 
 fn delete(place_id: Uuid, professional: ProfessionalUser, context: Context) -> impl Reply {
