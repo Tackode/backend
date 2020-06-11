@@ -17,8 +17,25 @@ pub fn get_with_organization(
 
     dsl::place
         .inner_join(organization::dsl::organization)
-        .filter(dsl::id.eq(id))
+        .filter(dsl::id.eq(id).and(dsl::disabled.eq(false)))
         .first::<(Place, Organization)>(&connection)
+        .map_err(|error| error.into())
+}
+
+pub fn get_all_with_organization(
+    connectors: &Connectors,
+    organization_id: &Uuid,
+) -> Result<Vec<(Place, Organization)>, Error> {
+    let connection = connectors.local.pool.get()?;
+
+    dsl::place
+        .inner_join(organization::dsl::organization)
+        .filter(
+            organization::dsl::id
+                .eq(organization_id)
+                .and(dsl::disabled.eq(false)),
+        )
+        .load::<(Place, Organization)>(&connection)
         .map_err(|error| error.into())
 }
 
