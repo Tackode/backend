@@ -15,10 +15,12 @@ pub struct Context {
 
 pub struct PublicUser {
     pub id: Uuid,
+    pub session_id: Uuid,
 }
 
 pub struct ProfessionalUser {
     pub id: Uuid,
+    pub session_id: Uuid,
 }
 
 #[derive(Serialize)]

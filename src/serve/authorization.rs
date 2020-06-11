@@ -39,6 +39,7 @@ pub fn public_user_filter(
                     match session {
                         Some(session) => Ok(PublicUser {
                             id: session.user_id,
+                            session_id: session.id,
                         }),
                         None => Err(reject::custom(Error::Unauthorized)),
                     }
@@ -56,6 +57,8 @@ pub fn professional_user_filter(
             Some(credentials) => {
                 return Ok(ProfessionalUser {
                     id: uuid::Uuid::parse_str("3731796d-06ab-49c7-b603-b12c93852552").unwrap(),
+                    session_id: uuid::Uuid::parse_str("3731796d-06ab-49c7-b603-b12c93852552")
+                        .unwrap(),
                 });
             }
             None => Err(reject::custom(Error::Unauthorized)),
