@@ -27,7 +27,7 @@ pub fn routes(context: Context) -> BoxedFilter<(impl Reply,)> {
         .and(warp::path!("logout"))
         .and(public_user_filter(context.clone()))
         .and(context_filter.clone())
-        .map(logout);
+        .and_then(logout);
 
     // POST /session/<session_id>/validate {confirmation_token} -> Credentials
     let session_validate = warp::post()
@@ -136,7 +136,8 @@ async fn login(
     Ok(warp::reply::json(&session))
 }
 
-fn logout(public: PublicUser, context: Context) -> impl Reply {
-    // Remove token from session
-    warp::reply()
+async fn logout(public: PublicUser, context: Context) -> Result<impl Reply, Rejection> {
+    session::set_disabled(&context.builders.create(), &public.session.id, true)?;
+
+    Ok(warp::reply())
 }

@@ -76,3 +76,20 @@ pub fn insert(connectors: &Connectors, session: &SessionInsert) -> Result<Sessio
         .get_result(&connection)
         .map_err(|error| error.into())
 }
+
+pub fn set_disabled(connectors: &Connectors, id: &Uuid, disabled: bool) -> Result<(), Error> {
+    let connection = connectors.local.pool.get()?;
+
+    // Insert user if not exists, otherwise update its email which the unhashed version of the login
+    diesel::update(dsl::session.find(id))
+        .set(dsl::disabled.eq(disabled))
+        .execute(&connection)
+        .map_err(|error| error.into())
+        .and_then(|count| {
+            if count == 1 {
+                Ok(())
+            } else {
+                Err(Error::NotFound)
+            }
+        })
+}
