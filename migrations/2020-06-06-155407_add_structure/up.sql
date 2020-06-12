@@ -22,7 +22,7 @@ CREATE TABLE "public"."checkin"
     "end_timestamp" timestamptz NOT NULL,
     "duration" int8 NOT NULL,
     "potential_infection" bool NOT NULL DEFAULT 'FALSE',
-    "confirmed" uuid NOT NULL,
+    "confirmed" bool NOT NULL,
     "created_at" timestamptz NOT NULL DEFAULT NOW(),
     "updated_at" timestamptz NOT NULL DEFAULT NOW(),
     PRIMARY KEY ("id")

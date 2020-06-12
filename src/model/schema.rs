@@ -8,7 +8,7 @@ table! {
         end_timestamp -> Timestamptz,
         duration -> Int8,
         potential_infection -> Bool,
-        confirmed -> Uuid,
+        confirmed -> Bool,
         created_at -> Timestamptz,
         updated_at -> Timestamptz,
     }
