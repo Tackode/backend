@@ -3,6 +3,7 @@ mod common;
 mod controller;
 mod error;
 mod types;
+mod session;
 
 use crate::connector::ConnectorsBuilders;
 use common::Context;

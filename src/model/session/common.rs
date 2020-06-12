@@ -25,6 +25,7 @@ pub struct SessionInsert {
 
 #[derive(AsChangeset)]
 #[table_name = "session"]
+#[changeset_options(treat_none_as_null = "true")]
 pub struct SessionTokenUpdate {
     pub hashed_confirmation_token: Option<String>,
     pub hashed_token: Option<String>,

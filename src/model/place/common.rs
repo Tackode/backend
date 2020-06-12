@@ -25,6 +25,7 @@ pub struct PlaceInsert {
 
 #[derive(AsChangeset)]
 #[table_name = "place"]
+#[changeset_options(treat_none_as_null = "true")]
 pub struct PlaceUpdate {
     pub name: String,
     pub description: Option<String>,

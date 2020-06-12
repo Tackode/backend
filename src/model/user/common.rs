@@ -31,13 +31,6 @@ pub struct User {
 #[table_name = "user"]
 pub struct UserInsert {
     pub login: String,
-    pub role: UserRole,
-}
-
-#[derive(Insertable)]
-#[table_name = "user"]
-pub struct UserUpsert {
-    pub login: String,
     pub email: Option<String>,
     pub role: UserRole,
 }

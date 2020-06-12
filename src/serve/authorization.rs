@@ -1,5 +1,7 @@
 use super::common::{Context, ProfessionalUser, PublicUser};
 use super::error::Error;
+use crate::connector::Connectors;
+use crate::model::session::Session;
 use crate::model::{session, user};
 use crate::security::hash;
 use base64::decode;
@@ -17,80 +19,60 @@ struct Credentials {
 pub fn public_user_filter(
     context: Context,
 ) -> impl Filter<Extract = (PublicUser,), Error = Rejection> + Clone {
-    warp::header::<String>("authorization")
-        .map(move |header| (header, context.clone()))
-        .and_then(|(header, context): (String, Context)| async move {
-            // Read basic header
-            match decrypt_basic_header(header) {
-                Some(credentials) => {
-                    // Prepare connectors
-                    let connectors = context.builders.create();
-
-                    // Prepare credentials
-                    let session_id = Uuid::parse_str(&credentials.username)
-                        .map_err(|_| reject::custom(Error::Unauthorized))?;
-                    let hashed_token = hash(credentials.password);
-
-                    // Retrieve confirmed session if any
-                    let session = session::get_confirmed(&connectors, &session_id, &hashed_token)?;
-
-                    match session {
-                        Some(session) => {
-                            let user = user::get(&connectors, &session.user_id)?;
-
-                            Ok(PublicUser {
-                                session: session.into(),
-                                user: user.into(),
-                            })
-                        }
-                        None => Err(reject::custom(Error::Unauthorized)),
-                    }
-                }
-                None => Err(reject::custom(Error::Unauthorized)),
-            }
-        })
+    auth_filter(context, |connectors, session| {
+        user::get(&connectors, &session.user_id)
+            .ok()
+            .map(|user| PublicUser {
+                session: session.into(),
+                user: user.into(),
+            })
+    })
 }
 
 pub fn professional_user_filter(
     context: Context,
 ) -> impl Filter<Extract = (ProfessionalUser,), Error = Rejection> + Clone {
-    warp::header::<String>("authorization")
-        .map(move |header| (header, context.clone()))
-        .and_then(|(header, context): (String, Context)| async move {
-            // Read basic header
-            match decrypt_basic_header(header) {
-                Some(credentials) => {
-                    // Prepare connectors
-                    let connectors = context.builders.create();
-
-                    // Prepare credentials
-                    let session_id = Uuid::parse_str(&credentials.username)
-                        .map_err(|_| reject::custom(Error::Unauthorized))?;
-                    let hashed_token = hash(credentials.password);
-
-                    // Retrieve confirmed session if any
-                    let session = session::get_confirmed(&connectors, &session_id, &hashed_token)?;
-
-                    match session {
-                        Some(session) => {
-                            if let (user, Some(org)) =
-                                user::get_with_organization(&connectors, &session.user_id)?
-                            {
-                                Ok(ProfessionalUser {
-                                    session: session.into(),
-                                    user: user.into(),
-                                    organization: org.into(),
-                                })
-                            } else {
-                                Err(reject::custom(Error::Unauthorized))
-                            }
-                        }
-                        None => Err(reject::custom(Error::Unauthorized)),
-                    }
+    auth_filter(context, |connectors, session| {
+        user::get_with_organization(&connectors, &session.user_id)
+            .ok()
+            .and_then(|(user, organisation)| {
+                if let Some(org) = organisation {
+                    Some(ProfessionalUser {
+                        session: session.into(),
+                        user: user.into(),
+                        organization: org.into(),
+                    })
+                } else {
+                    None
                 }
-                None => Err(reject::custom(Error::Unauthorized)),
-            }
-        })
+            })
+    })
+}
+
+fn auth_filter<T, F>(
+    context: Context,
+    get_user: F,
+) -> impl Filter<Extract = (T,), Error = Rejection> + Clone
+where
+    F: Fn(&Connectors, Session) -> Option<T> + Clone + Send,
+{
+    warp::header::<String>("authorization")
+        .map(move |header| (header, context.clone(), get_user.clone()))
+        .and_then(
+            |(header, context, get_user): (String, Context, F)| async move {
+                // Prepare connectors
+                let connectors = context.builders.create();
+
+                let user = decrypt_basic_header(header)
+                    .and_then(|credentials| credentials_to_session(&connectors, credentials))
+                    .and_then(|session| get_user(&connectors, session));
+
+                match user {
+                    Some(user) => Ok(user),
+                    None => Err(reject::custom(Error::Unauthorized)),
+                }
+            },
+        )
 }
 
 fn decrypt_basic_header(header: String) -> Option<Credentials> {
@@ -102,6 +84,15 @@ fn decrypt_basic_header(header: String) -> Option<Credentials> {
         Ok(h) => Some(h),
         Err(_) => None,
     }
+}
+
+fn credentials_to_session(connectors: &Connectors, credentials: Credentials) -> Option<Session> {
+    Uuid::parse_str(&credentials.username)
+        .ok()
+        .map(|session_id| (session_id, hash(credentials.password)))
+        .and_then(|(sid, ht)| session::get_confirmed(&connectors, &sid, &ht).ok())
+        .flatten()
+        .map(|s| s.into())
 }
 
 struct CredentialsError;

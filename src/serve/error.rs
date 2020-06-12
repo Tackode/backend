@@ -34,6 +34,8 @@ pub async fn handle_rejection(err: Rejection) -> Result<impl Reply, Rejection> {
     let response: Result<InternalErrorResponse, Rejection>;
 
     if let Some(error) = err.find::<Error>() {
+        log::error!("{:?}", error);
+
         response = Ok(InternalErrorResponse {
             code: match error {
                 Error::InvalidData => StatusCode::BAD_REQUEST,

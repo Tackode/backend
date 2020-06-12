@@ -9,6 +9,15 @@ use uuid::Uuid;
 
 pub use common::*;
 
+pub fn get(connectors: &Connectors, id: &Uuid) -> Result<Place, Error> {
+    let connection = connectors.local.pool.get()?;
+
+    dsl::place
+        .filter(dsl::id.eq(id).and(dsl::disabled.eq(false)))
+        .first::<Place>(&connection)
+        .map_err(|error| error.into())
+}
+
 pub fn get_with_organization(
     connectors: &Connectors,
     id: &Uuid,

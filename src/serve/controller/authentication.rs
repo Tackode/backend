@@ -1,8 +1,9 @@
 use super::super::authorization::public_user_filter;
 use super::super::common::*;
 use super::super::error::Error;
+use super::super::session::{create_session, get_auth_from_email};
 use super::super::types::*;
-use crate::model::{organization, session, user};
+use crate::model::{checkin, organization, session, user};
 use crate::security::{generate_token, hash};
 use uuid::Uuid;
 use validator::Validate;
@@ -67,9 +68,7 @@ async fn validate(
     session::confirm(&connectors, &session.id, &hashed_token)?;
     user::confirm(&connectors, &session.user_id)?;
     organization::confirm(&connectors, &session.user_id)?;
-    // checkin::confirm(&connectors, &session.id)?;
-
-    // TODO: Confirm checkins
+    checkin::confirm(&connectors, &session.id)?;
 
     Ok(warp::reply::json(&Credentials {
         login: session.id,
@@ -94,19 +93,21 @@ async fn login(
     // Prepare connector
     let connectors = context.builders.create();
 
-    // Hash email to get login
-    let login = hash(data.email.to_lowercase());
+    // Get login
+    let (login, stored_email) = get_auth_from_email(data.email, true);
 
     // Upsert user
     let user = user::insert(
         &connectors,
         &user::UserInsert {
             login,
+            email: stored_email,
             role: data.role,
         },
+        false,
     )?;
 
-    if user.role != data.role && data.role == user::UserRole::Professional {
+    if data.role == user::UserRole::Professional {
         match data.organization_name {
             Some(org_name) => {
                 // Upsert organization (do nothing on update)
@@ -119,30 +120,17 @@ async fn login(
                     },
                 )?;
 
-                // Upgrade user to pro user
-                user::update_role(&connectors, user.id, data.role)?;
+                if user.role != data.role {
+                    // Upgrade user to pro user
+                    user::update_role(&connectors, user.id, data.role)?;
+                }
             }
             None => return Err(warp::reject::custom(Error::InvalidData)),
         }
     }
 
     // Create session with confirmation token
-    let token = generate_token();
-    let session: Session = session::insert(
-        &connectors,
-        &session::SessionInsert {
-            user_id: user.id,
-            description: user_agent,
-            hashed_confirmation_token: hash(token.clone()),
-        },
-    )?
-    .into();
-
-    // Print validation URL
-    println!(
-        "Validation URL: /session/{}/validate?confirmationToken={}",
-        session.id, token
-    );
+    let session = create_session(&connectors, user.id, user_agent)?;
 
     // Return session_id
     Ok(warp::reply::json(&session))
