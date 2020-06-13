@@ -32,7 +32,7 @@ pub fn routes(context: Context) -> BoxedFilter<(impl Reply,)> {
         .and(warp::path!("checkins"))
         .and(public_user_filter(context.clone()))
         .and(context_filter.clone())
-        .map(get_all);
+        .and_then(get_all);
 
     checkin.or(get_checkins).boxed()
 }
@@ -101,22 +101,15 @@ async fn create(
     Ok(warp::reply::json(&session))
 }
 
-fn get_all(public: PublicUser, context: Context) -> impl Reply {
-    warp::reply::json(&vec![Checkin {
-        id: public.user.id,
-        timestamp: chrono::Utc::now(),
-        duration: 60,
-        place: Place {
-            id: public.user.id,
-            organization: Organization {
-                id: public.user.id,
-                name: String::from("Creatiwity"),
-            },
-            name: String::from("Bureau 1"),
-            description: None,
-            average_duration: 600,
-        },
-    }])
+async fn get_all(public: PublicUser, context: Context) -> Result<impl Reply, Rejection> {
+    let connectors = context.builders.create();
+
+    let checkins: Vec<Checkin> = checkin::get_all_with_user(&connectors, &public.user.id)?
+        .into_iter()
+        .map(|c| c.into())
+        .collect();
+
+    Ok(warp::reply::json(&checkins))
 }
 
 // TODO: delete all for user

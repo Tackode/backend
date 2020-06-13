@@ -37,25 +37,6 @@ pub struct ScanQuery {
 
 #[derive(Deserialize, Validate)]
 #[serde(rename_all = "camelCase")]
-pub struct CheckinForm {
-    pub place_id: Uuid,
-    #[validate(email)]
-    pub email: String,
-    pub store_email: bool,
-    #[validate(range(min = 1, max = 480))]
-    pub duration: i64,
-}
-
-#[derive(Serialize)]
-pub struct Checkin {
-    pub id: Uuid,
-    pub timestamp: DateTime<Utc>,
-    pub duration: i64,
-    pub place: Place,
-}
-
-#[derive(Deserialize, Validate)]
-#[serde(rename_all = "camelCase")]
 pub struct LoginForm {
     #[validate(email)]
     pub email: String,
