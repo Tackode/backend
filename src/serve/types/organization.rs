@@ -1,6 +1,7 @@
 use crate::model::organization::Organization as OrganizationModel;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+use validator::Validate;
 
 #[derive(Serialize)]
 pub struct Organization {
@@ -8,8 +9,9 @@ pub struct Organization {
     pub name: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Validate)]
 pub struct OrganizationForm {
+    #[validate(length(min = 1, max = 60))]
     pub name: String,
 }
 

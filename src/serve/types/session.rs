@@ -1,7 +1,18 @@
 use crate::model::session::Session as SessionModel;
+use crate::model::user::UserRole;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use validator::Validate;
+
+#[derive(Deserialize, Validate)]
+#[serde(rename_all = "camelCase")]
+pub struct LoginForm {
+    #[validate(email)]
+    pub email: String,
+    pub role: UserRole,
+    #[validate(length(min = 1, max = 60))]
+    pub organization_name: Option<String>,
+}
 
 #[derive(Deserialize, Validate)]
 #[serde(rename_all = "camelCase")]

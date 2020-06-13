@@ -1,5 +1,4 @@
 use super::super::authorization::public_user_filter;
-use super::super::common::*;
 use super::super::error::Error;
 use super::super::session::{create_session, get_auth_from_email};
 use super::super::types::*;

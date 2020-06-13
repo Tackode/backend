@@ -1,5 +1,4 @@
 use super::super::authorization::public_user_filter;
-use super::super::common::*;
 use super::super::types::*;
 use crate::model::user;
 use warp::{filters::BoxedFilter, Filter, Rejection, Reply};

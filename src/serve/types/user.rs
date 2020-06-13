@@ -1,4 +1,4 @@
-use super::Organization;
+use super::{Organization, Session};
 use crate::model::organization::Organization as OrganizationModel;
 use crate::model::user::{User as UserModel, UserRole};
 use serde::{Deserialize, Serialize};
@@ -10,6 +10,17 @@ pub struct User {
     pub id: Uuid,
     pub role: UserRole,
     pub email: Option<String>,
+}
+
+pub struct PublicUser {
+    pub user: User,
+    pub session: Session,
+}
+
+pub struct ProfessionalUser {
+    pub user: User,
+    pub session: Session,
+    pub organization: Organization,
 }
 
 #[derive(Serialize)]

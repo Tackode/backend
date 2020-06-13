@@ -21,6 +21,22 @@ pub fn upsert(connectors: &Connectors, org: &OrganizationUpsert) -> Result<(), E
         .map_err(|error| error.into())
 }
 
+pub fn set_name(connectors: &Connectors, id: &Uuid, name: &String) -> Result<(), Error> {
+    let connection = connectors.local.pool.get()?;
+
+    diesel::update(dsl::organization.find(id))
+        .set(dsl::name.eq(name))
+        .execute(&connection)
+        .map_err(|error| error.into())
+        .and_then(|count| {
+            if count == 1 {
+                Ok(())
+            } else {
+                Err(Error::NotFound)
+            }
+        })
+}
+
 pub fn confirm(connectors: &Connectors, id: &Uuid) -> Result<(), Error> {
     let connection = connectors.local.pool.get()?;
 

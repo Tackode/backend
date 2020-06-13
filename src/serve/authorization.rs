@@ -1,5 +1,5 @@
-use super::common::{Context, ProfessionalUser, PublicUser};
 use super::error::Error;
+use super::types::{Context, ProfessionalUser, PublicUser};
 use crate::connector::Connectors;
 use crate::model::session::Session;
 use crate::model::{session, user};

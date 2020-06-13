@@ -1,4 +1,4 @@
-use super::super::common::*;
+use super::super::types::*;
 use warp::{filters::BoxedFilter, Filter, Reply};
 
 pub fn routes() -> BoxedFilter<(impl Reply,)> {

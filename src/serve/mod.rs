@@ -1,14 +1,13 @@
 mod authorization;
-mod common;
 mod controller;
 mod error;
-mod types;
 mod session;
+mod types;
 
 use crate::connector::ConnectorsBuilders;
-use common::Context;
 use error::handle_rejection;
 use std::{env, net::SocketAddr};
+use types::Context;
 use warp::{http::header, http::Method, Filter};
 
 pub async fn run(builders: ConnectorsBuilders) {

@@ -1,7 +1,9 @@
 use super::super::authorization::professional_user_filter;
-use super::super::common::*;
+use super::super::error::Error;
 use super::super::types::*;
-use warp::{filters::BoxedFilter, Filter, Reply};
+use crate::model::organization;
+use validator::Validate;
+use warp::{filters::BoxedFilter, Filter, Rejection, Reply};
 
 pub fn routes(context: Context) -> BoxedFilter<(impl Reply,)> {
     let moved_context = context.clone();
@@ -14,10 +16,25 @@ pub fn routes(context: Context) -> BoxedFilter<(impl Reply,)> {
         .and(warp::body::content_length_limit(CONTENT_LENGTH_LIMIT))
         .and(warp::body::json())
         .and(context_filter.clone())
-        .map(update)
+        .and_then(update)
         .boxed()
 }
 
-fn update(professional: ProfessionalUser, data: OrganizationForm, context: Context) -> impl Reply {
-    warp::reply()
+async fn update(
+    professional: ProfessionalUser,
+    data: OrganizationForm,
+    context: Context,
+) -> Result<impl Reply, Rejection> {
+    // Validate data
+    if let Err(errors) = data.validate() {
+        return Err(warp::reject::custom(Error::InvalidDataWithDetails {
+            source: errors,
+        }));
+    }
+
+    let connectors = context.builders.create();
+
+    organization::set_name(&connectors, &professional.organization.id, &data.name)?;
+
+    Ok(warp::reply())
 }

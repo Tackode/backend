@@ -1,5 +1,4 @@
 use super::super::authorization::professional_user_filter;
-use super::super::common::*;
 use super::super::error::Error;
 use super::super::types::*;
 use crate::model::place;
