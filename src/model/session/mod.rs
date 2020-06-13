@@ -1,6 +1,6 @@
 mod common;
 
-use super::error::Error;
+use super::error::{is_one, Error};
 use super::schema::session::dsl;
 use crate::connector::Connectors;
 use diesel::prelude::*;
@@ -58,13 +58,7 @@ pub fn confirm(connectors: &Connectors, id: &Uuid, hashed_token: &String) -> Res
         })
         .execute(&connection)
         .map_err(|error| error.into())
-        .and_then(|count| {
-            if count == 1 {
-                Ok(())
-            } else {
-                Err(Error::NotFound)
-            }
-        })
+        .and_then(|count| is_one(count, "Session"))
 }
 
 pub fn insert(connectors: &Connectors, session: &SessionInsert) -> Result<Session, Error> {
@@ -85,11 +79,5 @@ pub fn set_disabled(connectors: &Connectors, id: &Uuid, disabled: bool) -> Resul
         .set(dsl::disabled.eq(disabled))
         .execute(&connection)
         .map_err(|error| error.into())
-        .and_then(|count| {
-            if count == 1 {
-                Ok(())
-            } else {
-                Err(Error::NotFound)
-            }
-        })
+        .and_then(|count| is_one(count, "Session"))
 }

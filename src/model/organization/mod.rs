@@ -1,6 +1,6 @@
 mod common;
 
-use super::error::Error;
+use super::error::{is_one, Error};
 use super::schema::organization::dsl;
 use crate::connector::Connectors;
 use diesel::prelude::*;
@@ -28,13 +28,7 @@ pub fn set_name(connectors: &Connectors, id: &Uuid, name: &String) -> Result<(),
         .set(dsl::name.eq(name))
         .execute(&connection)
         .map_err(|error| error.into())
-        .and_then(|count| {
-            if count == 1 {
-                Ok(())
-            } else {
-                Err(Error::NotFound)
-            }
-        })
+        .and_then(|count| is_one(count, "Organization"))
 }
 
 pub fn confirm(connectors: &Connectors, id: &Uuid) -> Result<(), Error> {

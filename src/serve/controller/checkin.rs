@@ -61,7 +61,7 @@ async fn create(
     // Generate user and session
     let (user, session) = match public {
         Some(public) => {
-            user::set_email(&connectors, &login, &stored_email)?;
+            user::set_email_with_login(&connectors, &login, &stored_email)?;
             (public.user, public.session)
         }
         None => {

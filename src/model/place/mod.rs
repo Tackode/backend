@@ -1,6 +1,6 @@
 mod common;
 
-use super::error::Error;
+use super::error::{is_one, Error};
 use super::organization::Organization;
 use super::schema::{organization, place::dsl};
 use crate::connector::Connectors;
@@ -77,13 +77,7 @@ pub fn update(
     .set(place)
     .execute(&connection)
     .map_err(|error| error.into())
-    .and_then(|count| {
-        if count == 1 {
-            Ok(())
-        } else {
-            Err(Error::NotFound)
-        }
-    })
+    .and_then(|count| is_one(count, "Place"))
 }
 
 pub fn set_disabled(
@@ -105,11 +99,5 @@ pub fn set_disabled(
     .set(dsl::disabled.eq(disabled))
     .execute(&connection)
     .map_err(|error| error.into())
-    .and_then(|count| {
-        if count == 1 {
-            Ok(())
-        } else {
-            Err(Error::NotFound)
-        }
-    })
+    .and_then(|count| is_one(count, "Place"))
 }
