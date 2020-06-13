@@ -23,7 +23,7 @@ pub fn routes(context: Context) -> BoxedFilter<(impl Reply,)> {
         .and(warp::path!("infections"))
         .and(professional_user_filter(context.clone()))
         .and(context_filter.clone())
-        .map(get_all);
+        .and_then(get_all);
 
     create_infection.or(get_infections).boxed()
 }
@@ -46,7 +46,7 @@ async fn create(
     place::validate_places_owned(&connectors, &professional.organization.id, &data.places_ids)?;
 
     // Insert infection
-    let infection: Infection = infection::insert(
+    let infection_id = infection::insert(
         &connectors,
         &infection::InfectionInsert {
             organization_id: professional.organization.id,
@@ -54,12 +54,25 @@ async fn create(
             start_timestamp: data.start_timestamp,
             end_timestamp: data.end_timestamp,
         },
-    )?
-    .into();
+    )?;
 
-    Ok(warp::reply::json(&infection))
+    let new_infection: Infection =
+        infection::get_with_organization(&connectors, &infection_id)?.into();
+
+    Ok(warp::reply::json(&new_infection))
 }
 
-fn get_all(professional: ProfessionalUser, context: Context) -> impl Reply {
-    warp::reply()
+async fn get_all(
+    professional: ProfessionalUser,
+    context: Context,
+) -> Result<impl Reply, Rejection> {
+    let connectors = context.builders.create();
+
+    let infections: Vec<Infection> =
+        infection::get_all_with_organization(&connectors, &professional.organization.id)?
+            .into_iter()
+            .map(|i| i.into())
+            .collect();
+
+    Ok(warp::reply::json(&infections))
 }

@@ -23,12 +23,26 @@ pub fn get_all_with_organization(
         .map_err(|error| error.into())
 }
 
-pub fn insert(connectors: &Connectors, infection: &InfectionInsert) -> Result<Infection, Error> {
+pub fn get_with_organization(
+    connectors: &Connectors,
+    infection_id: &Uuid,
+) -> Result<(Infection, Organization), Error> {
     let connection = connectors.local.pool.get()?;
 
-    let new_infection = diesel::insert_into(dsl::infection)
+    dsl::infection
+        .inner_join(organization::dsl::organization)
+        .filter(dsl::id.eq(infection_id))
+        .first::<(Infection, Organization)>(&connection)
+        .map_err(|error| error.into())
+}
+
+pub fn insert(connectors: &Connectors, infection: &InfectionInsert) -> Result<Uuid, Error> {
+    let connection = connectors.local.pool.get()?;
+
+    let id = diesel::insert_into(dsl::infection)
         .values(infection)
-        .get_result::<Infection>(&connection)?;
+        .returning(dsl::id)
+        .get_result(&connection)?;
 
     checkin::enable_potential_infections(
         connectors,
@@ -37,5 +51,5 @@ pub fn insert(connectors: &Connectors, infection: &InfectionInsert) -> Result<In
         &infection.end_timestamp,
     )?;
 
-    Ok(new_infection)
+    Ok(id)
 }
