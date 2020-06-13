@@ -1,4 +1,4 @@
-use super::Place;
+use crate::model::infection::Infection as InfectionModel;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -15,7 +15,20 @@ pub struct InfectionForm {
 #[serde(rename_all = "camelCase")]
 pub struct Infection {
     pub id: Uuid,
-    pub places: Vec<Place>,
+    pub organization_id: Uuid,
+    pub places_ids: Vec<Uuid>,
     pub start_timestamp: DateTime<Utc>,
     pub end_timestamp: DateTime<Utc>,
+}
+
+impl From<InfectionModel> for Infection {
+    fn from(infection: InfectionModel) -> Self {
+        Infection {
+            id: infection.id,
+            organization_id: infection.organization_id,
+            places_ids: infection.places_ids,
+            start_timestamp: infection.start_timestamp,
+            end_timestamp: infection.end_timestamp,
+        }
+    }
 }

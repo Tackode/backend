@@ -48,6 +48,34 @@ pub fn get_all_with_organization(
         .map_err(|error| error.into())
 }
 
+pub fn validate_places_owned(
+    connectors: &Connectors,
+    organization_id: &Uuid,
+    places_ids: &Vec<Uuid>,
+) -> Result<(), Error> {
+    let connection = connectors.local.pool.get()?;
+    let length = places_ids.len() as i64;
+
+    dsl::place
+        .select(diesel::dsl::count(dsl::id))
+        .filter(
+            dsl::organization_id
+                .eq(organization_id)
+                .and(dsl::id.eq_any(places_ids)),
+        )
+        .first(&connection)
+        .map_err(|error| error.into())
+        .and_then(|count: i64| {
+            if count == length {
+                Ok(())
+            } else {
+                Err(Error::NotFoundWithName {
+                    name: String::from("Place"),
+                })
+            }
+        })
+}
+
 pub fn insert(connectors: &Connectors, place: &PlaceInsert) -> Result<Uuid, Error> {
     let connection = connectors.local.pool.get()?;
 

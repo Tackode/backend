@@ -6,6 +6,7 @@ use super::place::Place;
 use super::schema::checkin::dsl;
 use super::schema::{organization, place};
 use crate::connector::Connectors;
+use chrono::{DateTime, Utc};
 use diesel::prelude::*;
 use uuid::Uuid;
 
@@ -43,4 +44,26 @@ pub fn confirm(connectors: &Connectors, session_id: &Uuid) -> Result<(), Error> 
         .execute(&connection)
         .map(|_| ())
         .map_err(|error| error.into())
+}
+
+pub fn enable_potential_infections(
+    connectors: &Connectors,
+    places_ids: &Vec<Uuid>,
+    start_timestamp: &DateTime<Utc>,
+    end_timestamp: &DateTime<Utc>,
+) -> Result<(), Error> {
+    let connection = connectors.local.pool.get()?;
+
+    diesel::update(
+        dsl::checkin.filter(
+            dsl::place_id
+                .eq_any(places_ids)
+                .and(dsl::start_timestamp.le(end_timestamp))
+                .and(dsl::end_timestamp.ge(start_timestamp)),
+        ),
+    )
+    .set(dsl::potential_infection.eq(true))
+    .execute(&connection)
+    .map(|_| ())
+    .map_err(|error| error.into())
 }

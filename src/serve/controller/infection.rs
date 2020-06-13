@@ -1,7 +1,9 @@
 use super::super::authorization::professional_user_filter;
+use super::super::error::Error;
 use super::super::types::*;
-use uuid::Uuid;
-use warp::{filters::BoxedFilter, Filter, Reply};
+use crate::model::{infection, place};
+use chrono::{Duration, Utc};
+use warp::{filters::BoxedFilter, Filter, Rejection, Reply};
 
 pub fn routes(context: Context) -> BoxedFilter<(impl Reply,)> {
     let moved_context = context.clone();
@@ -14,7 +16,7 @@ pub fn routes(context: Context) -> BoxedFilter<(impl Reply,)> {
         .and(warp::body::content_length_limit(CONTENT_LENGTH_LIMIT))
         .and(warp::body::json())
         .and(context_filter.clone())
-        .map(create);
+        .and_then(create);
 
     // GET /infections -> Vec<Infection>
     let get_infections = warp::get()
@@ -26,26 +28,38 @@ pub fn routes(context: Context) -> BoxedFilter<(impl Reply,)> {
     create_infection.or(get_infections).boxed()
 }
 
-fn create(professional: ProfessionalUser, data: InfectionForm, context: Context) -> impl Reply {
-    warp::reply()
+async fn create(
+    professional: ProfessionalUser,
+    data: InfectionForm,
+    context: Context,
+) -> Result<impl Reply, Rejection> {
+    // Validate dates and places
+    if data.start_timestamp >= data.end_timestamp
+        || data.end_timestamp > Utc::now()
+        || data.end_timestamp - data.start_timestamp >= Duration::minutes(480)
+    {
+        return Err(warp::reject::custom(Error::InvalidData));
+    }
+
+    let connectors = context.builders.create();
+
+    place::validate_places_owned(&connectors, &professional.organization.id, &data.places_ids)?;
+
+    // Insert infection
+    let infection: Infection = infection::insert(
+        &connectors,
+        &infection::InfectionInsert {
+            organization_id: professional.organization.id,
+            places_ids: data.places_ids,
+            start_timestamp: data.start_timestamp,
+            end_timestamp: data.end_timestamp,
+        },
+    )?
+    .into();
+
+    Ok(warp::reply::json(&infection))
 }
 
 fn get_all(professional: ProfessionalUser, context: Context) -> impl Reply {
-    let placeholder_id = Uuid::parse_str("85f520d0-193d-4386-bdf6-902bc7a4350e").unwrap();
-
-    warp::reply::json(&vec![Infection {
-        id: placeholder_id,
-        start_timestamp: chrono::Utc::now(),
-        end_timestamp: chrono::Utc::now(),
-        places: vec![Place {
-            id: professional.user.id,
-            organization: Organization {
-                id: professional.user.id,
-                name: String::from("Creatiwity"),
-            },
-            name: String::from("Bureau 1"),
-            description: None,
-            average_duration: 600,
-        }],
-    }])
+    warp::reply()
 }
