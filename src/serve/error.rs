@@ -1,5 +1,6 @@
 use custom_error::custom_error;
 use serde::Serialize;
+use std::convert::Infallible;
 use validator::ValidationErrors;
 use warp::http::StatusCode;
 use warp::{reject, Rejection, Reply};
@@ -30,8 +31,9 @@ struct InternalErrorResponse {
     message: String,
 }
 
-pub async fn handle_rejection(err: Rejection) -> Result<impl Reply, Rejection> {
-    let response: Result<InternalErrorResponse, Rejection>;
+/// Handle all rejctions and returns 400, 401, 404 and 500
+pub async fn handle_rejection(err: Rejection) -> Result<impl Reply, Infallible> {
+    let response: Result<InternalErrorResponse, Infallible>;
 
     if let Some(error) = err.find::<Error>() {
         log::error!("{:?}", error);
@@ -55,10 +57,35 @@ pub async fn handle_rejection(err: Rejection) -> Result<impl Reply, Rejection> {
                 message: String::from("Unauthorized"),
             })
         } else {
-            response = Err(err);
+            log::error!("Missing header: {:?}", missing_header);
+
+            response = Ok(InternalErrorResponse {
+                code: StatusCode::BAD_REQUEST,
+                message: String::from("Bad request"),
+            })
         }
+    } else if let Some(body_error) = err.find::<warp::body::BodyDeserializeError>() {
+        log::error!("Body error: {:?}", body_error);
+
+        response = Ok(InternalErrorResponse {
+            code: StatusCode::BAD_REQUEST,
+            message: String::from("Bad request"),
+        });
+    } else if let Some(_) = err.find::<warp::reject::MethodNotAllowed>() {
+        log::error!("Maybe not found error: {:?}", err);
+
+        // Must be a not found response
+        response = Ok(InternalErrorResponse {
+            code: StatusCode::NOT_FOUND,
+            message: String::from("Not found"),
+        })
     } else {
-        response = Err(err);
+        log::error!("Unhandled error: {:?}", err);
+
+        response = Ok(InternalErrorResponse {
+            code: StatusCode::INTERNAL_SERVER_ERROR,
+            message: String::from("Internal server error"),
+        })
     }
 
     response.map(|error| {
