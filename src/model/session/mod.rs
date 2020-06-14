@@ -1,7 +1,8 @@
 mod common;
 
 use super::error::{is_one, Error};
-use super::schema::session::dsl;
+use super::schema::{session::dsl, user};
+use super::user::User;
 use crate::connector::Connectors;
 use diesel::prelude::*;
 use uuid::Uuid;
@@ -12,10 +13,11 @@ pub fn get_unconfirmed(
     connectors: &Connectors,
     id: &Uuid,
     hashed_confirmation_token: &String,
-) -> Result<Session, Error> {
+) -> Result<(Session, User), Error> {
     let connection = connectors.local.pool.get()?;
 
     dsl::session
+        .inner_join(user::dsl::user)
         .filter(
             dsl::id
                 .eq(id)
@@ -23,7 +25,7 @@ pub fn get_unconfirmed(
                 .and(dsl::confirmed.eq(false))
                 .and(dsl::disabled.eq(false)),
         )
-        .first::<Session>(&connection)
+        .first::<(Session, User)>(&connection)
         .map_err(|error| error.into())
 }
 

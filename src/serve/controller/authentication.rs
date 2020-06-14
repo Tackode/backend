@@ -58,7 +58,8 @@ async fn validate(
     let hashed_confirmation_token = hash(data.confirmation_token);
 
     // Find session
-    let session = session::get_unconfirmed(&connectors, &session_id, &hashed_confirmation_token)?;
+    let (session, user) =
+        session::get_unconfirmed(&connectors, &session_id, &hashed_confirmation_token)?;
 
     // Generate token and save
     let token = generate_token();
@@ -72,6 +73,7 @@ async fn validate(
     Ok(warp::reply::json(&Credentials {
         login: session.id,
         token,
+        user: user.into(),
     }))
 }
 

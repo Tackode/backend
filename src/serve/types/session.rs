@@ -1,3 +1,4 @@
+use super::User;
 use crate::model::session::Session as SessionModel;
 use crate::model::user::UserRole;
 use serde::{Deserialize, Serialize};
@@ -32,6 +33,7 @@ pub struct Session {
 pub struct Credentials {
     pub login: Uuid,
     pub token: String,
+    pub user: User,
 }
 
 impl From<SessionModel> for Session {
