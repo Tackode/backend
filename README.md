@@ -16,7 +16,7 @@ Setup a postgresql database (macOS commands).
 
 ```
 brew install postgresql
-createuser --pwprompt covidjournal # set password to covidjournalpw for instance
+createuser --pwprompt --superuser covidjournal # set password to covidjournalpw for instance
 createdb --owner=covidjournal covidjournal
 ```
 
