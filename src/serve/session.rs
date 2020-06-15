@@ -24,7 +24,7 @@ pub fn create_session(
 
     // Print validation URL
     println!(
-        "Validation URL: /session/{}/validate?confirmationToken={}",
+        "Validation URL: /validate-session?sessionId={}&token={}",
         session.id, token
     );
 
