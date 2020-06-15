@@ -9,8 +9,8 @@ pub fn routes(context: Context) -> BoxedFilter<(impl Reply,)> {
     let moved_context = context.clone();
     let context_filter = warp::any().map(move || moved_context.clone());
 
-    // POST /organization {name} -> 200
-    warp::post()
+    // PUT /organization {name} -> 200
+    warp::put()
         .and(warp::path!("organization"))
         .and(professional_user_filter(context.clone()))
         .and(warp::body::content_length_limit(CONTENT_LENGTH_LIMIT))

@@ -16,8 +16,8 @@ pub fn routes(context: Context) -> BoxedFilter<(impl Reply,)> {
         .and(context_filter.clone())
         .and_then(get);
 
-    // POST /profile {email?} -> 200
-    let set_profile = warp::post()
+    // PUT /profile {email?} -> 200
+    let set_profile = warp::put()
         .and(warp::path!("profile"))
         .and(public_user_filter(context.clone()))
         .and(warp::body::content_length_limit(CONTENT_LENGTH_LIMIT))
