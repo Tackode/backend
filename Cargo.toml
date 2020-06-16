@@ -13,7 +13,10 @@ custom_error = "1.7"
 diesel = { version = "1.4", features = ["postgres", "chrono", "r2d2", "serde_json", "uuidv07"] }
 diesel_migrations = { version = "1.4", features = ["postgres"] }
 dotenv = "0.15"
+lettre = "0.9"
+lettre_email = "0.9"
 log = "0.4"
+native-tls = "0.2"
 openssl = "0.10"
 pretty_env_logger = "0.4"
 r2d2 = "0.8"
