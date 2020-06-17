@@ -23,7 +23,7 @@ pub async fn run(builders: ConnectorsBuilders) {
 
     // CORS
     let cors = warp::cors()
-        .allow_methods(&[Method::GET, Method::POST, Method::DELETE])
+        .allow_methods(&[Method::GET, Method::POST, Method::PUT, Method::DELETE])
         .allow_headers(vec![header::CONTENT_TYPE, header::AUTHORIZATION])
         .allow_any_origin();
 
