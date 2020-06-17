@@ -56,7 +56,7 @@ async fn create(
     place::get(&connectors, &data.place_id)?;
 
     // Hash email to get login
-    let (login, stored_email) = get_auth_from_email(data.email, data.store_email);
+    let (login, stored_email) = get_auth_from_email(data.email.clone(), data.store_email);
 
     // Generate user and session
     let (user, session) = match public {
@@ -76,7 +76,7 @@ async fn create(
             )?
             .into();
 
-            let session = create_session(&connectors, user.id, user_agent)?;
+            let session = create_session(&connectors, user.id, data.email, user_agent)?;
 
             (user, session)
         }

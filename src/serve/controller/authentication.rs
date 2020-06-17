@@ -95,7 +95,7 @@ async fn login(
     let connectors = context.builders.create();
 
     // Get login
-    let (login, stored_email) = get_auth_from_email(data.email, true);
+    let (login, stored_email) = get_auth_from_email(data.email.clone(), true);
 
     // Upsert user
     let user = user::insert(
@@ -131,7 +131,7 @@ async fn login(
     }
 
     // Create session with confirmation token
-    let session = create_session(&connectors, user.id, user_agent)?;
+    let session = create_session(&connectors, user.id, data.email, user_agent)?;
 
     // Return session_id
     Ok(warp::reply::json(&session))

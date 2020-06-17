@@ -1,25 +1,13 @@
+pub mod templates;
+
 use lettre::smtp::authentication::{Credentials, Mechanism};
 use lettre::smtp::extension::ClientId;
 use lettre::smtp::ConnectionReuseParameters;
 use lettre::{ClientSecurity, ClientTlsParameters, SmtpClient, Transport};
-use lettre_email::Email;
+use lettre_email::{Email, MimeMultipartType, PartBuilder};
 use native_tls::{Protocol, TlsConnector};
 use std::env;
-
-// pub enum EmailModel {
-//     LoginValidation {
-//         session_id: Uuid,
-//         token: Uuid,
-//     },
-//     CheckinValidation {
-//         session_id: Uuid,
-//         token: Uuid,
-//         place_name: String,
-//     },
-//     PotentialInfectionNotification {
-
-//     }
-// }
+use templates::EmailTemplate;
 
 // pub struct Email {
 //     pub to: String
@@ -45,21 +33,46 @@ pub struct Connector {
 }
 
 impl Connector {
-    pub fn send(&self) {
-        let email = Email::builder()
-            // Addresses can be specified by the tuple (email, alias)
-            .to(("contact@creatiwity.net", "Contact Creatiwity"))
-            // ... or by an address only
-            .from((self.from_address.clone(), self.from_name.clone()))
-            .subject("Hi, Hello world")
-            .alternative("<h2>Hi, Hello world.</h2>", "Hi, Hello world.")
-            .build()
-            .unwrap();
-
+    // Use EmailData to instanciate an email
+    pub fn send(&self, templates: Vec<impl EmailTemplate>) {
         let mut mailer = self.smtp_client.clone().transport();
 
-        let result = mailer.send(email.into());
-        assert!(result.is_ok(), result.unwrap_err().to_string());
+        for template in templates.iter() {
+            template
+                .build()
+                .and_then(|email| {
+                    let builder = Email::builder()
+                        .to(email.to)
+                        .from((self.from_address.clone(), self.from_name.clone()))
+                        .subject(email.subject)
+                        .html(email.body);
+
+                    // Handle embeds
+                    let builder = email.embeds.iter().fold(builder, |builder, embed| {
+                        let encoded_body = base64::encode(&embed.body);
+                        let content = PartBuilder::new()
+                            .body(encoded_body)
+                            .header((
+                                "Content-Disposition",
+                                format!("attachment; filename=\"{}\"", embed.filename),
+                            ))
+                            .header((
+                                "Content-Type",
+                                format!("{}; name=\"{}\"", embed.content_type, embed.filename),
+                            ))
+                            .header(("Content-Transfer-Encoding", "base64"))
+                            .header(("Content-ID", format!("<{}>", embed.content_id)))
+                            .build();
+
+                        builder
+                            .message_type(MimeMultipartType::Mixed)
+                            .child(content)
+                    });
+
+                    builder.build().ok()
+                })
+                .and_then(|email| mailer.send(email.into()).ok());
+        }
 
         // Explicitly close the SMTP transaction as we enabled connection reuse
         mailer.close();
@@ -98,6 +111,10 @@ impl ConnectorBuilder {
             .credentials(Credentials::new(smtp_login, smtp_password))
             .smtp_utf8(true)
             .connection_reuse(ConnectionReuseParameters::ReuseUnlimited);
+
+        // Init templates
+        // Load HTML and TXT
+        // Prepare content_id in HTML
 
         ConnectorBuilder {
             smtp_client,

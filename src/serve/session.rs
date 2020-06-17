@@ -1,5 +1,5 @@
 use super::types::Session;
-use crate::connector::Connectors;
+use crate::connector::{email::templates::DeviceValidationEmail, Connectors};
 use crate::model::error::Error;
 use crate::model::session;
 use crate::security::{generate_token, hash};
@@ -8,6 +8,7 @@ use uuid::Uuid;
 pub fn create_session(
     connectors: &Connectors,
     user_id: Uuid,
+    email_address: String,
     description: String,
 ) -> Result<Session, Error> {
     // Create session with confirmation token
@@ -29,6 +30,9 @@ pub fn create_session(
     );
 
     // TODO: Remove print and send email
+    connectors
+        .email
+        .send(vec![DeviceValidationEmail { to: email_address }]);
 
     Ok(session)
 }
