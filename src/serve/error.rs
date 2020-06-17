@@ -33,12 +33,12 @@ struct InternalErrorResponse {
 
 /// Handle all rejctions and returns 400, 401, 404 and 500
 pub async fn handle_rejection(err: Rejection) -> Result<impl Reply, Infallible> {
-    let response: Result<InternalErrorResponse, Infallible>;
+    let response: InternalErrorResponse;
 
     if let Some(error) = err.find::<Error>() {
         log::error!("{:?}", error);
 
-        response = Ok(InternalErrorResponse {
+        response = InternalErrorResponse {
             code: match error {
                 Error::InvalidData => StatusCode::BAD_REQUEST,
                 Error::InvalidDataWithDetails { .. } => StatusCode::BAD_REQUEST,
@@ -49,52 +49,50 @@ pub async fn handle_rejection(err: Rejection) -> Result<impl Reply, Infallible> 
                 },
             },
             message: error.to_string(),
-        });
+        };
     } else if let Some(missing_header) = err.find::<warp::reject::MissingHeader>() {
         if missing_header.name() == "authorization" {
-            response = Ok(InternalErrorResponse {
+            response = InternalErrorResponse {
                 code: StatusCode::UNAUTHORIZED,
                 message: String::from("Unauthorized"),
-            })
+            };
         } else {
             log::error!("Missing header: {:?}", missing_header);
 
-            response = Ok(InternalErrorResponse {
+            response = InternalErrorResponse {
                 code: StatusCode::BAD_REQUEST,
                 message: String::from("Bad request"),
-            })
+            };
         }
     } else if let Some(body_error) = err.find::<warp::body::BodyDeserializeError>() {
         log::error!("Body error: {:?}", body_error);
 
-        response = Ok(InternalErrorResponse {
+        response = InternalErrorResponse {
             code: StatusCode::BAD_REQUEST,
             message: String::from("Bad request"),
-        });
+        };
     } else if let Some(_) = err.find::<warp::reject::MethodNotAllowed>() {
         log::error!("Maybe not found error: {:?}", err);
 
         // Must be a not found response
-        response = Ok(InternalErrorResponse {
+        response = InternalErrorResponse {
             code: StatusCode::NOT_FOUND,
             message: String::from("Not found"),
-        })
+        };
     } else {
         log::error!("Unhandled error: {:?}", err);
 
-        response = Ok(InternalErrorResponse {
+        response = InternalErrorResponse {
             code: StatusCode::INTERNAL_SERVER_ERROR,
             message: String::from("Internal server error"),
-        })
+        };
     }
 
-    response.map(|error| {
-        warp::reply::with_status(
-            warp::reply::json(&ErrorResponse {
-                code: error.code.as_u16(),
-                message: error.message,
-            }),
-            error.code,
-        )
-    })
+    Ok(warp::reply::with_status(
+        warp::reply::json(&ErrorResponse {
+            code: response.code.as_u16(),
+            message: response.message,
+        }),
+        response.code,
+    ))
 }
