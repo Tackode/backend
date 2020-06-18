@@ -2,6 +2,9 @@
 /target
 **/*.rs.bk
 
+# Build
+/dist/backend
+
 # Env
 .env
 

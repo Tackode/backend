@@ -9,25 +9,39 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
-      - name: Run postgres
-        run: docker-compose up -d postgres
-      - name: Install Rust toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-      - uses: actions/cache@v2
+      - name: Caching
+        uses: actions/cache@v2
         with:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
             target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-      - name: Build
-        uses: actions-rs/cargo@v1
+      - name: Build for MUSL
+        run: |
+          mkdir -p ~/.cargo/{git,registry}
+          docker pull clux/muslrust:stable
+          docker run \
+            -v ~/.cargo/registry:/root/.cargo/registry \
+            -v ~/.cargo/git:/root/.cargo/git \
+            -v $GITHUB_WORKSPACE:/volume \
+            --rm -t clux/muslrust:stable /volume/build-musl.sh
+      - name: Archive production artifact
+        uses: actions/upload-artifact@v2
         with:
-          command: build
-          args: --release
-      - name: Run tests
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
+          name: covid-journal-backend
+          path: dist/backend
+      - name: Docker build
+        env:
+          IMAGE_NAME: covid-journal-backend
+          VERSION: ${GITHUB_REF##*/}
+        run: |
+          docker build --tag $IMAGE_NAME:$VERSION "./dist"
+      - name: Docker publish
+        env:
+          IMAGE_NAME: covid-journal-backend
+          VERSION: ${GITHUB_REF##*/}
+        run: |
+          cat ~/GH_TOKEN.txt | docker login docker.pkg.github.com -u $GITHUB_ACTOR --password-stdin
+          docker tag $IMAGE_NAME:$VERSION docker.pkg.github.com/covidjournal/backend/$IMAGE_NAME:$VERSION
+          docker push docker.pkg.github.com/covidjournal/backend/$IMAGE_NAME:$VERSION
