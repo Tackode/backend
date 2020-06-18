@@ -34,14 +34,12 @@ jobs:
       - name: Docker build
         env:
           IMAGE_NAME: covid-journal-backend
-          VERSION: ${GITHUB_REF##*/}
         run: |
-          docker build --tag $IMAGE_NAME:$VERSION "./dist"
+          docker build --tag $IMAGE_NAME:${GITHUB_REF##*/} "./dist"
       - name: Docker publish
         env:
           IMAGE_NAME: covid-journal-backend
-          VERSION: ${GITHUB_REF##*/}
         run: |
           cat ~/GH_TOKEN.txt | docker login docker.pkg.github.com -u $GITHUB_ACTOR --password-stdin
-          docker tag $IMAGE_NAME:$VERSION docker.pkg.github.com/covidjournal/backend/$IMAGE_NAME:$VERSION
-          docker push docker.pkg.github.com/covidjournal/backend/$IMAGE_NAME:$VERSION
+          docker tag $IMAGE_NAME:${GITHUB_REF##*/} docker.pkg.github.com/covidjournal/backend/$IMAGE_NAME:${GITHUB_REF##*/}
+          docker push docker.pkg.github.com/covidjournal/backend/$IMAGE_NAME:${GITHUB_REF##*/}
