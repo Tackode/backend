@@ -1,5 +1,5 @@
 <mj-section padding="20px 0px" background-color="#3c3c3c" border-radius="8px 8px 0px 0px">
   <mj-column>
-    <mj-image align="center" width="400px" src="./images/logo.png"></mj-image>
+    <mj-image align="center" width="400px" src="../images/logo.png"></mj-image>
   </mj-column>
 </mj-section>

@@ -7,11 +7,15 @@ use rust_embed::RustEmbed;
 use std::path::Path;
 
 #[derive(RustEmbed)]
-#[folder = "emails/"]
-struct Asset;
+#[folder = "emails/html/"]
+struct Template;
+
+#[derive(RustEmbed)]
+#[folder = "emails/images/"]
+struct Image;
 
 fn template(filename: &str) -> Option<String> {
-    Asset::get(filename).and_then(|template| String::from_utf8(template.into()).ok())
+    Template::get(filename).and_then(|template| String::from_utf8(template.into()).ok())
 }
 
 fn embed_in_template(
@@ -19,15 +23,12 @@ fn embed_in_template(
     filepath: &str,
     content_type: Mime,
 ) -> Option<(String, Embed)> {
-    let path = Path::new(filepath);
-
-    // Find filename
-    path.file_name()
-        .and_then(|file_name| file_name.to_str())
-        .map(|file_name| file_name.to_string())
-        .and_then(|filename| {
-            // Load file
-            Asset::get(filepath).map(|body| {
+    get_embed_filepath(filepath)
+        .and_then(|embed_filepath| {
+            get_filename(filepath).map(|filename| (embed_filepath, filename))
+        })
+        .and_then(|(embed_filepath, filename)| // Load file
+            Image::get(&embed_filepath).map(|body| {
                 // Replace references in template by content id
                 let content_id = filename.clone(); // format!("{}@covid-journal.org", filename);
                 let content_id_tmpl = format!("cid:{}", content_id);
@@ -42,8 +43,22 @@ fn embed_in_template(
                         content_id: content_id.to_string(),
                     },
                 )
-            })
-        })
+            }))
+}
+
+fn get_embed_filepath(filepath: &str) -> Option<String> {
+    Path::new(filepath)
+        .strip_prefix("../images")
+        .ok()
+        .and_then(|f| f.to_str())
+        .map(|f| f.to_string())
+}
+
+fn get_filename(filepath: &str) -> Option<String> {
+    Path::new(filepath)
+        .file_name()
+        .and_then(|f| f.to_str())
+        .map(|f| f.to_string())
 }
 
 pub struct Embed {
