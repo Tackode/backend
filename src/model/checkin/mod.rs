@@ -4,7 +4,8 @@ use super::error::Error;
 use super::organization::Organization;
 use super::place::Place;
 use super::schema::checkin::dsl;
-use super::schema::{organization, place};
+use super::schema::{organization, place, user};
+use super::user::User;
 use crate::connector::Connector;
 use chrono::{DateTime, Utc};
 use diesel::prelude::*;
@@ -66,4 +67,26 @@ pub fn enable_potential_infections(
     .execute(&connection)
     .map(|_| ())
     .map_err(|error| error.into())
+}
+
+pub fn get_potential_infections(
+    connector: &Connector,
+    places_ids: &Vec<Uuid>,
+    start_timestamp: &DateTime<Utc>,
+    end_timestamp: &DateTime<Utc>,
+) -> Result<Vec<(Checkin, User, Place)>, Error> {
+    let connection = connector.local.pool.get()?;
+
+    dsl::checkin
+        .inner_join(user::dsl::user)
+        .inner_join(place::dsl::place)
+        .filter(
+            dsl::place_id
+                .eq_any(places_ids)
+                .and(dsl::start_timestamp.le(end_timestamp))
+                .and(dsl::end_timestamp.ge(start_timestamp))
+                .and(user::dsl::email.is_not_null()),
+        )
+        .load::<(Checkin, User, Place)>(&connection)
+        .map_err(|error| error.into())
 }

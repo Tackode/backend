@@ -1,4 +1,5 @@
 mod device_validation;
+mod infection_warning;
 mod storage;
 
 use lettre_email::mime::Mime;
@@ -7,6 +8,7 @@ use std::collections::HashMap;
 use std::path::Path;
 
 pub use device_validation::DeviceValidationEmail;
+pub use infection_warning::InfectionWarningEmail;
 pub use storage::TemplateStorage;
 
 #[derive(RustEmbed)]

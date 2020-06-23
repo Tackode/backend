@@ -1,0 +1,52 @@
+<mjml>
+  <mj-head>
+    <!-- typography -->
+    <mj-attributes>
+      <mj-all font-family="'Helvetica Neue', Helvetica, Arial, sans-serif"></mj-all>
+      <mj-text font-weight="400" font-size="16px" color="#3c3c3c" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif"></mj-text>
+      <mj-class name="header" font-weight="bold" align="center" font-size="32px"></mj-class>
+      <mj-button color="#f5f5f5" background-color="#5299d3" border-radius="8px" font-size="18px" font-weight="700"></mj-button>
+    </mj-attributes>
+    <mj-style inline="inline">
+      .body-section {
+        -webkit-box-shadow: 0 15px 46px 0 rgba(3, 6, 52, 0.05);
+        -moz-box-shadow: 0 15px 46px 0 rgba(3, 6, 52, 0.05);
+        box-shadow: 0 15px 46px 0 rgba(3, 6, 52, 0.05);
+      }
+    </mj-style>
+  </mj-head>
+  <mj-body background-color="#f5f5f5">
+    <mj-section padding="0px 0px 40px 0px">
+      <mj-column> </mj-column>
+    </mj-section>
+    <mj-wrapper padding="0px" css-class="body-section" border-radius="8px" background-color="#ffffff">
+      <mj-include path="./includes/header.mjml" />
+      <!-- Action -->
+      <mj-section padding="40px 20px 20px">
+        <mj-column>
+          <mj-text mj-class="header">Contact possible avec une personne infectée</mj-text>
+        </mj-column>
+      </mj-section>
+      <!-- Action fin -->
+      <mj-section padding="20px 20px 20px">
+        <mj-column>
+          <mj-text>Vous avez potentiellement été en contact avec une personne infectée lors de votre passage à cet endroit :</mj-text>
+          <mj-text align="center" font-weight="800">{{organizationName}}</mj-text>
+          <mj-text align="center" font-weight="800">{{placeName}}</mj-text>
+          <mj-text align="center" font-weight="800">le {{checkinDateTime}}</mj-text>
+          <mj-text>Veuillez vous rapprocher de votre médecin pour avoir plus d'informations sur la conduite à tenir.</mj-text>
+        </mj-column>
+      </mj-section>
+      <!-- CTA -->
+      <mj-section padding="0px">
+        <mj-column>
+          <mj-divider border-width="1px" border-style="solid" border-color="#f5f5f5" padding="20px" />
+        </mj-column>
+      </mj-section>
+      <mj-include path="./includes/footer.mjml" />
+    </mj-wrapper>
+    <mj-section padding="40px 0px 0px 0px">
+      <mj-column> </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

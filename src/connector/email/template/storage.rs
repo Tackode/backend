@@ -1,10 +1,12 @@
 use super::device_validation::DeviceValidationTemplate;
+use super::infection_warning::InfectionWarningTemplate;
 use std::env;
 
 #[derive(Clone)]
 pub struct TemplateStorage {
     pub front_public_url: String,
     pub device_validation: DeviceValidationTemplate,
+    pub infection_warning: InfectionWarningTemplate,
 }
 
 impl TemplateStorage {
@@ -14,6 +16,7 @@ impl TemplateStorage {
         TemplateStorage {
             front_public_url,
             device_validation: DeviceValidationTemplate::new(),
+            infection_warning: InfectionWarningTemplate::new(),
         }
     }
 }

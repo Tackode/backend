@@ -1,7 +1,8 @@
 use super::super::authorization::professional_user_filter;
 use super::super::error::Error;
 use super::super::types::*;
-use crate::model::{infection, place};
+use crate::connector::email::template::InfectionWarningEmail;
+use crate::model::{checkin, infection, place};
 use chrono::{Duration, Utc};
 use warp::{filters::BoxedFilter, Filter, Rejection, Reply};
 
@@ -50,11 +51,31 @@ async fn create(
         &connector,
         &infection::InfectionInsert {
             organization_id: professional.organization.id,
-            places_ids: data.places_ids,
+            places_ids: data.places_ids.clone(),
             start_timestamp: data.start_timestamp,
             end_timestamp: data.end_timestamp,
         },
     )?;
+
+    // Notify infected
+    let infected_users = checkin::get_potential_infections(
+        &connector,
+        &data.places_ids,
+        &data.start_timestamp,
+        &data.end_timestamp,
+    )?;
+
+    connector.email.send(
+        infected_users
+            .iter()
+            .map(|(checkin, user, place)| InfectionWarningEmail {
+                to: user.email.clone().unwrap(), // Already checked in model
+                organization_name: professional.organization.name.clone(),
+                place_name: place.name.clone(),
+                checkin_datetime: checkin.start_timestamp,
+            })
+            .collect(),
+    );
 
     let new_infection: Infection =
         infection::get_with_organization(&connector, &infection_id)?.into();
