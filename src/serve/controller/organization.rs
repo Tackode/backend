@@ -32,9 +32,9 @@ async fn update(
         }));
     }
 
-    let connectors = context.builders.create();
+    let connector = context.builders.create();
 
-    organization::set_name(&connectors, &professional.organization.id, &data.name)?;
+    organization::set_name(&connector, &professional.organization.id, &data.name)?;
 
     Ok(warp::reply())
 }

@@ -3,14 +3,14 @@ mod common;
 use super::error::{is_one, Error};
 use super::organization::Organization;
 use super::schema::{organization, place::dsl};
-use crate::connector::Connectors;
+use crate::connector::Connector;
 use diesel::prelude::*;
 use uuid::Uuid;
 
 pub use common::*;
 
-pub fn get(connectors: &Connectors, id: &Uuid) -> Result<Place, Error> {
-    let connection = connectors.local.pool.get()?;
+pub fn get(connector: &Connector, id: &Uuid) -> Result<Place, Error> {
+    let connection = connector.local.pool.get()?;
 
     dsl::place
         .filter(dsl::id.eq(id).and(dsl::disabled.eq(false)))
@@ -19,10 +19,10 @@ pub fn get(connectors: &Connectors, id: &Uuid) -> Result<Place, Error> {
 }
 
 pub fn get_with_organization(
-    connectors: &Connectors,
+    connector: &Connector,
     id: &Uuid,
 ) -> Result<(Place, Organization), Error> {
-    let connection = connectors.local.pool.get()?;
+    let connection = connector.local.pool.get()?;
 
     dsl::place
         .inner_join(organization::dsl::organization)
@@ -32,10 +32,10 @@ pub fn get_with_organization(
 }
 
 pub fn get_all_with_organization(
-    connectors: &Connectors,
+    connector: &Connector,
     organization_id: &Uuid,
 ) -> Result<Vec<(Place, Organization)>, Error> {
-    let connection = connectors.local.pool.get()?;
+    let connection = connector.local.pool.get()?;
 
     dsl::place
         .inner_join(organization::dsl::organization)
@@ -49,11 +49,11 @@ pub fn get_all_with_organization(
 }
 
 pub fn validate_places_owned(
-    connectors: &Connectors,
+    connector: &Connector,
     organization_id: &Uuid,
     places_ids: &Vec<Uuid>,
 ) -> Result<(), Error> {
-    let connection = connectors.local.pool.get()?;
+    let connection = connector.local.pool.get()?;
     let length = places_ids.len() as i64;
 
     dsl::place
@@ -76,8 +76,8 @@ pub fn validate_places_owned(
         })
 }
 
-pub fn insert(connectors: &Connectors, place: &PlaceInsert) -> Result<Uuid, Error> {
-    let connection = connectors.local.pool.get()?;
+pub fn insert(connector: &Connector, place: &PlaceInsert) -> Result<Uuid, Error> {
+    let connection = connector.local.pool.get()?;
 
     diesel::insert_into(dsl::place)
         .values(place)
@@ -87,12 +87,12 @@ pub fn insert(connectors: &Connectors, place: &PlaceInsert) -> Result<Uuid, Erro
 }
 
 pub fn update(
-    connectors: &Connectors,
+    connector: &Connector,
     id: &Uuid,
     organization_id: &Uuid,
     place: &PlaceUpdate,
 ) -> Result<(), Error> {
-    let connection = connectors.local.pool.get()?;
+    let connection = connector.local.pool.get()?;
 
     diesel::update(
         dsl::place.filter(
@@ -109,12 +109,12 @@ pub fn update(
 }
 
 pub fn set_disabled(
-    connectors: &Connectors,
+    connector: &Connector,
     id: &Uuid,
     organization_id: &Uuid,
     disabled: bool,
 ) -> Result<(), Error> {
-    let connection = connectors.local.pool.get()?;
+    let connection = connector.local.pool.get()?;
 
     diesel::update(
         dsl::place.filter(

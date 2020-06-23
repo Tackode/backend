@@ -4,17 +4,17 @@ use super::checkin;
 use super::error::Error;
 use super::organization::Organization;
 use super::schema::{infection::dsl, organization};
-use crate::connector::Connectors;
+use crate::connector::Connector;
 use diesel::prelude::*;
 use uuid::Uuid;
 
 pub use common::*;
 
 pub fn get_all_with_organization(
-    connectors: &Connectors,
+    connector: &Connector,
     organization_id: &Uuid,
 ) -> Result<Vec<(Infection, Organization)>, Error> {
-    let connection = connectors.local.pool.get()?;
+    let connection = connector.local.pool.get()?;
 
     dsl::infection
         .inner_join(organization::dsl::organization)
@@ -24,10 +24,10 @@ pub fn get_all_with_organization(
 }
 
 pub fn get_with_organization(
-    connectors: &Connectors,
+    connector: &Connector,
     infection_id: &Uuid,
 ) -> Result<(Infection, Organization), Error> {
-    let connection = connectors.local.pool.get()?;
+    let connection = connector.local.pool.get()?;
 
     dsl::infection
         .inner_join(organization::dsl::organization)
@@ -36,8 +36,8 @@ pub fn get_with_organization(
         .map_err(|error| error.into())
 }
 
-pub fn insert(connectors: &Connectors, infection: &InfectionInsert) -> Result<Uuid, Error> {
-    let connection = connectors.local.pool.get()?;
+pub fn insert(connector: &Connector, infection: &InfectionInsert) -> Result<Uuid, Error> {
+    let connection = connector.local.pool.get()?;
 
     let id = diesel::insert_into(dsl::infection)
         .values(infection)
@@ -45,7 +45,7 @@ pub fn insert(connectors: &Connectors, infection: &InfectionInsert) -> Result<Uu
         .get_result(&connection)?;
 
     checkin::enable_potential_infections(
-        connectors,
+        connector,
         &infection.places_ids,
         &infection.start_timestamp,
         &infection.end_timestamp,

@@ -36,9 +36,9 @@ pub fn routes(context: Context) -> BoxedFilter<(impl Reply,)> {
 }
 
 async fn get(public: PublicUser, context: Context) -> Result<impl Reply, Rejection> {
-    let connectors = context.builders.create();
+    let connector = context.builders.create();
 
-    let profile: Profile = user::get_with_organization(&connectors, &public.user.id)?.into();
+    let profile: Profile = user::get_with_organization(&connector, &public.user.id)?.into();
 
     Ok(warp::reply::json(&profile))
 }

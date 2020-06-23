@@ -13,7 +13,7 @@ mod model;
 mod security;
 mod serve;
 
-use connector::ConnectorsBuilders;
+use connector::ConnectorBuilder;
 use dotenv::dotenv;
 
 #[tokio::main]
@@ -25,7 +25,7 @@ async fn main() {
     pretty_env_logger::init();
 
     // Load database
-    let connector_builders = ConnectorsBuilders::new();
+    let connector_builders = ConnectorBuilder::new();
 
     // Run command
     serve::run(connector_builders).await;

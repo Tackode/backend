@@ -5,7 +5,7 @@ use super::organization::Organization;
 use super::place::Place;
 use super::schema::checkin::dsl;
 use super::schema::{organization, place};
-use crate::connector::Connectors;
+use crate::connector::Connector;
 use chrono::{DateTime, Utc};
 use diesel::prelude::*;
 use uuid::Uuid;
@@ -13,10 +13,10 @@ use uuid::Uuid;
 pub use common::*;
 
 pub fn get_all_with_user(
-    connectors: &Connectors,
+    connector: &Connector,
     user_id: &Uuid,
 ) -> Result<Vec<(Checkin, (Place, Organization))>, Error> {
-    let connection = connectors.local.pool.get()?;
+    let connection = connector.local.pool.get()?;
 
     dsl::checkin
         .inner_join(place::dsl::place.inner_join(organization::dsl::organization))
@@ -25,8 +25,8 @@ pub fn get_all_with_user(
         .map_err(|error| error.into())
 }
 
-pub fn insert(connectors: &Connectors, checkin: &CheckinInsert) -> Result<Uuid, Error> {
-    let connection = connectors.local.pool.get()?;
+pub fn insert(connector: &Connector, checkin: &CheckinInsert) -> Result<Uuid, Error> {
+    let connection = connector.local.pool.get()?;
 
     // Insert user if not exists, otherwise update its email which the unhashed version of the login
     diesel::insert_into(dsl::checkin)
@@ -36,8 +36,8 @@ pub fn insert(connectors: &Connectors, checkin: &CheckinInsert) -> Result<Uuid, 
         .map_err(|error| error.into())
 }
 
-pub fn confirm(connectors: &Connectors, session_id: &Uuid) -> Result<(), Error> {
-    let connection = connectors.local.pool.get()?;
+pub fn confirm(connector: &Connector, session_id: &Uuid) -> Result<(), Error> {
+    let connection = connector.local.pool.get()?;
 
     diesel::update(dsl::checkin.filter(dsl::session_id.eq(session_id)))
         .set(dsl::confirmed.eq(true))
@@ -47,12 +47,12 @@ pub fn confirm(connectors: &Connectors, session_id: &Uuid) -> Result<(), Error> 
 }
 
 pub fn enable_potential_infections(
-    connectors: &Connectors,
+    connector: &Connector,
     places_ids: &Vec<Uuid>,
     start_timestamp: &DateTime<Utc>,
     end_timestamp: &DateTime<Utc>,
 ) -> Result<(), Error> {
-    let connection = connectors.local.pool.get()?;
+    let connection = connector.local.pool.get()?;
 
     diesel::update(
         dsl::checkin.filter(

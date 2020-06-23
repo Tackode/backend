@@ -1,6 +1,6 @@
 use super::error::Error;
 use super::types::{Context, ProfessionalUser, PublicUser};
-use crate::connector::Connectors;
+use crate::connector::Connector;
 use crate::model::session::Session;
 use crate::model::{session, user};
 use crate::security::hash;
@@ -19,8 +19,8 @@ struct Credentials {
 pub fn public_user_filter(
     context: Context,
 ) -> impl Filter<Extract = (PublicUser,), Error = Rejection> + Clone {
-    auth_filter(context, |connectors, session| {
-        user::get(&connectors, &session.user_id)
+    auth_filter(context, |connector, session| {
+        user::get(&connector, &session.user_id)
             .ok()
             .map(|user| PublicUser {
                 session: session.into(),
@@ -32,8 +32,8 @@ pub fn public_user_filter(
 pub fn professional_user_filter(
     context: Context,
 ) -> impl Filter<Extract = (ProfessionalUser,), Error = Rejection> + Clone {
-    auth_filter(context, |connectors, session| {
-        user::get_with_organization(&connectors, &session.user_id)
+    auth_filter(context, |connector, session| {
+        user::get_with_organization(&connector, &session.user_id)
             .ok()
             .and_then(|(user, organisation)| {
                 if let Some(org) = organisation {
@@ -54,18 +54,18 @@ fn auth_filter<T, F>(
     get_user: F,
 ) -> impl Filter<Extract = (T,), Error = Rejection> + Clone
 where
-    F: Fn(&Connectors, Session) -> Option<T> + Clone + Send,
+    F: Fn(&Connector, Session) -> Option<T> + Clone + Send,
 {
     warp::header::<String>("authorization")
         .map(move |header| (header, context.clone(), get_user.clone()))
         .and_then(
             |(header, context, get_user): (String, Context, F)| async move {
-                // Prepare connectors
-                let connectors = context.builders.create();
+                // Prepare connector
+                let connector = context.builders.create();
 
                 let user = decrypt_basic_header(header)
-                    .and_then(|credentials| credentials_to_session(&connectors, credentials))
-                    .and_then(|session| get_user(&connectors, session));
+                    .and_then(|credentials| credentials_to_session(&connector, credentials))
+                    .and_then(|session| get_user(&connector, session));
 
                 match user {
                     Some(user) => Ok(user),
@@ -86,11 +86,11 @@ fn decrypt_basic_header(header: String) -> Option<Credentials> {
     }
 }
 
-fn credentials_to_session(connectors: &Connectors, credentials: Credentials) -> Option<Session> {
+fn credentials_to_session(connector: &Connector, credentials: Credentials) -> Option<Session> {
     Uuid::parse_str(&credentials.username)
         .ok()
         .map(|session_id| (session_id, hash(credentials.password)))
-        .and_then(|(sid, ht)| session::get_confirmed(&connectors, &sid, &ht).ok())
+        .and_then(|(sid, ht)| session::get_confirmed(&connector, &sid, &ht).ok())
         .flatten()
         .map(|s| s.into())
 }

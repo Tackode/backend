@@ -3,14 +3,14 @@ mod common;
 use super::error::{is_one, Error};
 use super::organization::Organization;
 use super::schema::{organization, user::dsl};
-use crate::connector::Connectors;
+use crate::connector::Connector;
 use diesel::prelude::*;
 use uuid::Uuid;
 
 pub use common::*;
 
-pub fn get(connectors: &Connectors, id: &Uuid) -> Result<User, Error> {
-    let connection = connectors.local.pool.get()?;
+pub fn get(connector: &Connector, id: &Uuid) -> Result<User, Error> {
+    let connection = connector.local.pool.get()?;
 
     dsl::user
         .filter(dsl::id.eq(id).and(dsl::disabled.eq(false)))
@@ -18,8 +18,8 @@ pub fn get(connectors: &Connectors, id: &Uuid) -> Result<User, Error> {
         .map_err(|error| error.into())
 }
 
-pub fn get_with_login(connectors: &Connectors, login: &String) -> Result<User, Error> {
-    let connection = connectors.local.pool.get()?;
+pub fn get_with_login(connector: &Connector, login: &String) -> Result<User, Error> {
+    let connection = connector.local.pool.get()?;
 
     dsl::user
         .filter(dsl::login.eq(login).and(dsl::disabled.eq(false)))
@@ -28,10 +28,10 @@ pub fn get_with_login(connectors: &Connectors, login: &String) -> Result<User, E
 }
 
 pub fn get_with_organization(
-    connectors: &Connectors,
+    connector: &Connector,
     id: &Uuid,
 ) -> Result<(User, Option<Organization>), Error> {
-    let connection = connectors.local.pool.get()?;
+    let connection = connector.local.pool.get()?;
 
     dsl::user
         .left_join(organization::dsl::organization)
@@ -40,12 +40,8 @@ pub fn get_with_organization(
         .map_err(|error| error.into())
 }
 
-pub fn insert(
-    connectors: &Connectors,
-    user: &UserInsert,
-    update_email: bool,
-) -> Result<User, Error> {
-    let connection = connectors.local.pool.get()?;
+pub fn insert(connector: &Connector, user: &UserInsert, update_email: bool) -> Result<User, Error> {
+    let connection = connector.local.pool.get()?;
 
     // Insert user if not exists
     let insert_count = diesel::insert_into(dsl::user)
@@ -55,14 +51,14 @@ pub fn insert(
         .execute(&connection)?;
 
     if insert_count == 0 && update_email {
-        set_email_with_login(connectors, &user.login, &user.email)?;
+        set_email_with_login(connector, &user.login, &user.email)?;
     }
 
-    get_with_login(connectors, &user.login)
+    get_with_login(connector, &user.login)
 }
 
-pub fn update_role(connectors: &Connectors, id: Uuid, role: UserRole) -> Result<(), Error> {
-    let connection = connectors.local.pool.get()?;
+pub fn update_role(connector: &Connector, id: Uuid, role: UserRole) -> Result<(), Error> {
+    let connection = connector.local.pool.get()?;
 
     diesel::update(dsl::user.filter(dsl::id.eq(id).and(dsl::disabled.eq(false))))
         .set(dsl::role.eq(role))
@@ -71,8 +67,8 @@ pub fn update_role(connectors: &Connectors, id: Uuid, role: UserRole) -> Result<
         .and_then(|count| is_one(count, "User"))
 }
 
-pub fn confirm(connectors: &Connectors, id: &Uuid) -> Result<(), Error> {
-    let connection = connectors.local.pool.get()?;
+pub fn confirm(connector: &Connector, id: &Uuid) -> Result<(), Error> {
+    let connection = connector.local.pool.get()?;
 
     diesel::update(dsl::user.filter(dsl::id.eq(id).and(dsl::disabled.eq(false))))
         .set(dsl::confirmed.eq(true))
@@ -82,11 +78,11 @@ pub fn confirm(connectors: &Connectors, id: &Uuid) -> Result<(), Error> {
 }
 
 pub fn set_email_with_login(
-    connectors: &Connectors,
+    connector: &Connector,
     login: &String,
     email: &Option<String>,
 ) -> Result<(), Error> {
-    let connection = connectors.local.pool.get()?;
+    let connection = connector.local.pool.get()?;
 
     diesel::update(dsl::user.filter(dsl::login.eq(login).and(dsl::disabled.eq(false))))
         .set(dsl::email.eq(email))
@@ -95,8 +91,8 @@ pub fn set_email_with_login(
         .and_then(|count| is_one(count, "User"))
 }
 
-pub fn set_email(connectors: &Connectors, id: &Uuid, email: &Option<String>) -> Result<(), Error> {
-    let connection = connectors.local.pool.get()?;
+pub fn set_email(connector: &Connector, id: &Uuid, email: &Option<String>) -> Result<(), Error> {
+    let connection = connector.local.pool.get()?;
 
     diesel::update(dsl::user.filter(dsl::id.eq(id).and(dsl::disabled.eq(false))))
         .set(dsl::email.eq(email))
@@ -105,8 +101,8 @@ pub fn set_email(connectors: &Connectors, id: &Uuid, email: &Option<String>) -> 
         .and_then(|count| is_one(count, "User"))
 }
 
-pub fn delete(connectors: &Connectors, id: &Uuid) -> Result<(), Error> {
-    let connection = connectors.local.pool.get()?;
+pub fn delete(connector: &Connector, id: &Uuid) -> Result<(), Error> {
+    let connection = connector.local.pool.get()?;
 
     diesel::delete(dsl::user.find(id))
         .execute(&connection)

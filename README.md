@@ -40,6 +40,12 @@ GET /
 cargo test
 ```
 
+## Emails
+
+Because of the usage of `font-size:0px;` by MJML, all emails are normally considered as spam.
+
+When saving emails, remove all occurence of `font-size:0px;` in the exported HTML to avoid that and save it with UTF8-BOM.
+
 ## Authors
 
 -   **Julien Blatecky** - [Julien1619](https://twitter.com/Julien1619)

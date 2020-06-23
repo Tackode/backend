@@ -41,13 +41,13 @@ async fn create(
         return Err(warp::reject::custom(Error::InvalidData));
     }
 
-    let connectors = context.builders.create();
+    let connector = context.builders.create();
 
-    place::validate_places_owned(&connectors, &professional.organization.id, &data.places_ids)?;
+    place::validate_places_owned(&connector, &professional.organization.id, &data.places_ids)?;
 
     // Insert infection
     let infection_id = infection::insert(
-        &connectors,
+        &connector,
         &infection::InfectionInsert {
             organization_id: professional.organization.id,
             places_ids: data.places_ids,
@@ -57,7 +57,7 @@ async fn create(
     )?;
 
     let new_infection: Infection =
-        infection::get_with_organization(&connectors, &infection_id)?.into();
+        infection::get_with_organization(&connector, &infection_id)?.into();
 
     Ok(warp::reply::json(&new_infection))
 }
@@ -66,10 +66,10 @@ async fn get_all(
     professional: ProfessionalUser,
     context: Context,
 ) -> Result<impl Reply, Rejection> {
-    let connectors = context.builders.create();
+    let connector = context.builders.create();
 
     let infections: Vec<Infection> =
-        infection::get_all_with_organization(&connectors, &professional.organization.id)?
+        infection::get_all_with_organization(&connector, &professional.organization.id)?
             .into_iter()
             .map(|i| i.into())
             .collect();

@@ -1,8 +1,8 @@
-use crate::connector::ConnectorsBuilders;
+use crate::connector::ConnectorBuilder;
 
 pub const CONTENT_LENGTH_LIMIT: u64 = 1024 * 16;
 
 #[derive(Clone)]
 pub struct Context {
-    pub builders: ConnectorsBuilders,
+    pub builders: ConnectorBuilder,
 }

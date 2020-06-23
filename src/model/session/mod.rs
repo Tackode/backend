@@ -3,18 +3,18 @@ mod common;
 use super::error::{is_one, Error};
 use super::schema::{session::dsl, user};
 use super::user::User;
-use crate::connector::Connectors;
+use crate::connector::Connector;
 use diesel::prelude::*;
 use uuid::Uuid;
 
 pub use common::*;
 
 pub fn get_unconfirmed(
-    connectors: &Connectors,
+    connector: &Connector,
     id: &Uuid,
     hashed_confirmation_token: &String,
 ) -> Result<(Session, User), Error> {
-    let connection = connectors.local.pool.get()?;
+    let connection = connector.local.pool.get()?;
 
     dsl::session
         .inner_join(user::dsl::user)
@@ -30,11 +30,11 @@ pub fn get_unconfirmed(
 }
 
 pub fn get_confirmed(
-    connectors: &Connectors,
+    connector: &Connector,
     id: &Uuid,
     hashed_token: &String,
 ) -> Result<Option<Session>, Error> {
-    let connection = connectors.local.pool.get()?;
+    let connection = connector.local.pool.get()?;
 
     dsl::session
         .filter(
@@ -49,8 +49,8 @@ pub fn get_confirmed(
         .map_err(|error| error.into())
 }
 
-pub fn confirm(connectors: &Connectors, id: &Uuid, hashed_token: &String) -> Result<(), Error> {
-    let connection = connectors.local.pool.get()?;
+pub fn confirm(connector: &Connector, id: &Uuid, hashed_token: &String) -> Result<(), Error> {
+    let connection = connector.local.pool.get()?;
 
     diesel::update(dsl::session.find(id))
         .set(&SessionTokenUpdate {
@@ -63,8 +63,8 @@ pub fn confirm(connectors: &Connectors, id: &Uuid, hashed_token: &String) -> Res
         .and_then(|count| is_one(count, "Session"))
 }
 
-pub fn insert(connectors: &Connectors, session: &SessionInsert) -> Result<Session, Error> {
-    let connection = connectors.local.pool.get()?;
+pub fn insert(connector: &Connector, session: &SessionInsert) -> Result<Session, Error> {
+    let connection = connector.local.pool.get()?;
 
     // Insert user if not exists, otherwise update its email which the unhashed version of the login
     diesel::insert_into(dsl::session)
@@ -73,8 +73,8 @@ pub fn insert(connectors: &Connectors, session: &SessionInsert) -> Result<Sessio
         .map_err(|error| error.into())
 }
 
-pub fn set_disabled(connectors: &Connectors, id: &Uuid, disabled: bool) -> Result<(), Error> {
-    let connection = connectors.local.pool.get()?;
+pub fn set_disabled(connector: &Connector, id: &Uuid, disabled: bool) -> Result<(), Error> {
+    let connection = connector.local.pool.get()?;
 
     // Insert user if not exists, otherwise update its email which the unhashed version of the login
     diesel::update(dsl::session.find(id))

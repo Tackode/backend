@@ -50,10 +50,10 @@ async fn create(
     }
 
     // Prepare connector
-    let connectors = context.builders.create();
+    let connector = context.builders.create();
 
     // Check if place exists
-    place::get(&connectors, &data.place_id)?;
+    place::get(&connector, &data.place_id)?;
 
     // Hash email to get login
     let (login, stored_email) = get_auth_from_email(data.email.clone(), data.store_email);
@@ -61,12 +61,12 @@ async fn create(
     // Generate user and session
     let (user, session) = match public {
         Some(public) => {
-            user::set_email_with_login(&connectors, &login, &stored_email)?;
+            user::set_email_with_login(&connector, &login, &stored_email)?;
             (public.user, public.session)
         }
         None => {
             let user: User = user::insert(
-                &connectors,
+                &connector,
                 &user::UserInsert {
                     login,
                     email: stored_email,
@@ -76,7 +76,7 @@ async fn create(
             )?
             .into();
 
-            let session = create_session(&connectors, user.id, data.email, user_agent)?;
+            let session = create_session(&connector, user.id, data.email, user_agent)?;
 
             (user, session)
         }
@@ -84,7 +84,7 @@ async fn create(
 
     // Create checkin
     checkin::insert(
-        &connectors,
+        &connector,
         &checkin::CheckinInsert {
             place_id: data.place_id,
             session_id: session.id,
@@ -101,9 +101,9 @@ async fn create(
 }
 
 async fn get_all(public: PublicUser, context: Context) -> Result<impl Reply, Rejection> {
-    let connectors = context.builders.create();
+    let connector = context.builders.create();
 
-    let checkins: Vec<Checkin> = checkin::get_all_with_user(&connectors, &public.user.id)?
+    let checkins: Vec<Checkin> = checkin::get_all_with_user(&connector, &public.user.id)?
         .into_iter()
         .map(|c| c.into())
         .collect();

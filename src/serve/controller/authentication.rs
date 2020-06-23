@@ -52,23 +52,23 @@ async fn validate(
     }
 
     // Prepare connector
-    let connectors = context.builders.create();
+    let connector = context.builders.create();
 
     // Hash token
     let hashed_confirmation_token = hash(data.confirmation_token);
 
     // Find session
     let (session, user) =
-        session::get_unconfirmed(&connectors, &session_id, &hashed_confirmation_token)?;
+        session::get_unconfirmed(&connector, &session_id, &hashed_confirmation_token)?;
 
     // Generate token and save
     let token = generate_token();
     let hashed_token = hash(token.clone());
 
-    session::confirm(&connectors, &session.id, &hashed_token)?;
-    user::confirm(&connectors, &session.user_id)?;
-    organization::confirm(&connectors, &session.user_id)?;
-    checkin::confirm(&connectors, &session.id)?;
+    session::confirm(&connector, &session.id, &hashed_token)?;
+    user::confirm(&connector, &session.user_id)?;
+    organization::confirm(&connector, &session.user_id)?;
+    checkin::confirm(&connector, &session.id)?;
 
     Ok(warp::reply::json(&Credentials {
         login: session.id,
@@ -92,14 +92,14 @@ async fn login(
     }
 
     // Prepare connector
-    let connectors = context.builders.create();
+    let connector = context.builders.create();
 
     // Get login
     let (login, stored_email) = get_auth_from_email(data.email.clone(), true);
 
     // Upsert user
     let user = user::insert(
-        &connectors,
+        &connector,
         &user::UserInsert {
             login,
             email: stored_email,
@@ -113,7 +113,7 @@ async fn login(
             Some(org_name) => {
                 // Upsert organization (do nothing on update)
                 organization::upsert(
-                    &connectors,
+                    &connector,
                     &organization::OrganizationUpsert {
                         user_id: user.id,
                         name: org_name,
@@ -123,7 +123,7 @@ async fn login(
 
                 if user.role != data.role {
                     // Upgrade user to pro user
-                    user::update_role(&connectors, user.id, data.role)?;
+                    user::update_role(&connector, user.id, data.role)?;
                 }
             }
             None => return Err(warp::reject::custom(Error::InvalidData)),
@@ -131,7 +131,7 @@ async fn login(
     }
 
     // Create session with confirmation token
-    let session = create_session(&connectors, user.id, data.email, user_agent)?;
+    let session = create_session(&connector, user.id, data.email, user_agent)?;
 
     // Return session_id
     Ok(warp::reply::json(&session))

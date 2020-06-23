@@ -1,12 +1,12 @@
 use super::types::Session;
-use crate::connector::{email::templates::DeviceValidationEmail, Connectors};
+use crate::connector::{email::template::DeviceValidationEmail, Connector};
 use crate::model::error::Error;
 use crate::model::session;
 use crate::security::{generate_token, hash};
 use uuid::Uuid;
 
 pub fn create_session(
-    connectors: &Connectors,
+    connector: &Connector,
     user_id: Uuid,
     email_address: String,
     description: String,
@@ -14,7 +14,7 @@ pub fn create_session(
     // Create session with confirmation token
     let token = generate_token();
     let session: Session = session::insert(
-        &connectors,
+        &connector,
         &session::SessionInsert {
             user_id,
             description,
@@ -23,16 +23,11 @@ pub fn create_session(
     )?
     .into();
 
-    // Print validation URL
-    println!(
-        "Validation URL: /validate-session?sessionId={}&token={}",
-        session.id, token
-    );
-
-    // TODO: Remove print and send email
-    connectors
-        .email
-        .send(vec![DeviceValidationEmail { to: email_address }]);
+    // Send validation URL
+    connector.email.send(vec![DeviceValidationEmail {
+        to: email_address,
+        url: format!("/validate-session?sessionId={}&token={}", session.id, token),
+    }]);
 
     Ok(session)
 }

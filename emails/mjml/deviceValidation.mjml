@@ -2,8 +2,9 @@
   <mj-head>
     <!-- typography -->
     <mj-attributes>
-      <mj-class name="header" font-weight="bold" color="#3c3c3c" align="center" font-family="Helvetica,Arial,sans-serif" font-size="32px"></mj-class>
-      <mj-class name="message-body" align="left" font-size="16px" color="#3c3c3c" />
+      <mj-all font-family="'Helvetica Neue', Helvetica, Arial, sans-serif"></mj-all>
+      <mj-text font-weight="400" font-size="16px" color="#3c3c3c" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif"></mj-text>
+      <mj-class name="header" font-weight="bold" align="center" font-size="32px"></mj-class>
       <mj-button color="#f5f5f5" background-color="#5299d3" border-radius="8px" font-size="18px" font-weight="700"></mj-button>
     </mj-attributes>
     <mj-style inline="inline">
@@ -11,13 +12,6 @@
         -webkit-box-shadow: 0 15px 46px 0 rgba(3, 6, 52, 0.05);
         -moz-box-shadow: 0 15px 46px 0 rgba(3, 6, 52, 0.05);
         box-shadow: 0 15px 46px 0 rgba(3, 6, 52, 0.05);
-      }
-    </mj-style>
-    <mj-style>
-      @media all and (min-width: 480px) {
-        .align div {
-          text-align: right !important;
-        }
       }
     </mj-style>
   </mj-head>
@@ -36,9 +30,9 @@
       <!-- Action fin -->
       <mj-section padding="20px 20px 20px">
         <mj-column>
-          <mj-text mj-class="message-body">Pour valider votre session sur Covid-Journal, merci de cliquer sur le lien ci-dessous.</mj-text>
-          <mj-text mj-class="message-body">Si vous n'êtes pas à l'origine de cette demande, merci d'ignorer ce message.</mj-text>
-          <mj-button padding="20px 0px 0px" href="{{FrontPublicUrl}}{{RequestUrl}}">Valider ma session</mj-button>
+          <mj-text>Pour valider votre session sur Covid-Journal, merci de cliquer sur le lien ci-dessous.</mj-text>
+          <mj-text>Si vous n'êtes pas à l'origine de cette demande, merci d'ignorer ce message.</mj-text>
+          <mj-button padding="20px 0px 0px" href="{{frontPublicUrl}}{{url}}">Valider ma session</mj-button>
         </mj-column>
       </mj-section>
       <!-- CTA -->

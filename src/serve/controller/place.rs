@@ -57,9 +57,9 @@ pub fn routes(context: Context) -> BoxedFilter<(impl Reply,)> {
 }
 
 async fn get_one(place_id: Uuid, context: Context) -> Result<impl Reply, Rejection> {
-    let connectors = context.builders.create();
+    let connector = context.builders.create();
 
-    let place: Place = place::get_with_organization(&connectors, &place_id)?.into();
+    let place: Place = place::get_with_organization(&connector, &place_id)?.into();
 
     Ok(warp::reply::json(&place))
 }
@@ -68,10 +68,10 @@ async fn get_all(
     professional: ProfessionalUser,
     context: Context,
 ) -> Result<impl Reply, Rejection> {
-    let connectors = context.builders.create();
+    let connector = context.builders.create();
 
     let places: Vec<Place> =
-        place::get_all_with_organization(&connectors, &professional.organization.id)?
+        place::get_all_with_organization(&connector, &professional.organization.id)?
             .into_iter()
             .map(|p| p.into())
             .collect();
@@ -91,11 +91,11 @@ async fn create(
         }));
     }
 
-    let connectors = context.builders.create();
+    let connector = context.builders.create();
 
     // Create place
     let place_id = place::insert(
-        &connectors,
+        &connector,
         &place::PlaceInsert {
             organization_id: professional.organization.id,
             name: data.name,
@@ -105,7 +105,7 @@ async fn create(
     )?;
 
     // Retrieve newly created place
-    let place: Place = place::get_with_organization(&connectors, &place_id)?.into();
+    let place: Place = place::get_with_organization(&connector, &place_id)?.into();
 
     Ok(warp::reply::json(&place))
 }
@@ -123,11 +123,11 @@ async fn update(
         }));
     }
 
-    let connectors = context.builders.create();
+    let connector = context.builders.create();
 
     // Update place
     place::update(
-        &connectors,
+        &connector,
         &place_id,
         &professional.organization.id,
         &place::PlaceUpdate {
@@ -145,10 +145,10 @@ async fn delete(
     professional: ProfessionalUser,
     context: Context,
 ) -> Result<impl Reply, Rejection> {
-    let connectors = context.builders.create();
+    let connector = context.builders.create();
 
     // Update place
-    place::set_disabled(&connectors, &place_id, &professional.organization.id, true)?;
+    place::set_disabled(&connector, &place_id, &professional.organization.id, true)?;
 
     Ok(warp::reply())
 }
