@@ -37,7 +37,7 @@ async fn create(
     // Validate dates and places
     if data.start_timestamp >= data.end_timestamp
         || data.end_timestamp > Utc::now()
-        || data.end_timestamp - data.start_timestamp >= Duration::minutes(480)
+        || data.end_timestamp - data.start_timestamp >= Duration::minutes(720)
     {
         return Err(warp::reject::custom(Error::InvalidData));
     }
