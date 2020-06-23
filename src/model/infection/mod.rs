@@ -19,6 +19,7 @@ pub fn get_all_with_organization(
     dsl::infection
         .inner_join(organization::dsl::organization)
         .filter(organization::dsl::id.eq(organization_id))
+        .order(dsl::start_timestamp.desc())
         .load::<(Infection, Organization)>(&connection)
         .map_err(|error| error.into())
 }

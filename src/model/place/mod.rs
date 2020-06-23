@@ -44,6 +44,7 @@ pub fn get_all_with_organization(
                 .eq(organization_id)
                 .and(dsl::disabled.eq(false)),
         )
+        .order(dsl::created_at.desc())
         .load::<(Place, Organization)>(&connection)
         .map_err(|error| error.into())
 }

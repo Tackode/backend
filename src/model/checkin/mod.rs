@@ -22,6 +22,7 @@ pub fn get_all_with_user(
     dsl::checkin
         .inner_join(place::dsl::place.inner_join(organization::dsl::organization))
         .filter(dsl::user_id.eq(user_id).and(dsl::confirmed.eq(true)))
+        .order(dsl::start_timestamp.desc())
         .load::<(Checkin, (Place, Organization))>(&connection)
         .map_err(|error| error.into())
 }
