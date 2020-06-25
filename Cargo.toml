@@ -14,8 +14,8 @@ custom_error = "1.7"
 diesel = { version = "1.4", features = ["postgres", "chrono", "r2d2", "serde_json", "uuidv07"] }
 diesel_migrations = { version = "1.4", features = ["postgres"] }
 dotenv = "0.15"
-lettre = "0.9"
-lettre_email = "0.9"
+lettre = { git = "https://github.com/julien1619/lettre", branch = "v0.9.x" }
+lettre_email = { git = "https://github.com/julien1619/lettre", branch = "v0.9.x" }
 log = "0.4"
 native-tls = "0.2"
 pretty_env_logger = "0.4"

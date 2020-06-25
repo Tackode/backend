@@ -42,7 +42,7 @@ checksum = "f8aac770f1885fd7e387acedd76065302551364496e46b3dd00860b2f8359b9d"
 name = "backend"
 version = "1.0.0"
 dependencies = [
- "base64 0.12.2",
+ "base64 0.12.3",
  "chrono",
  "chrono-tz",
  "custom_error",
@@ -95,9 +95,9 @@ checksum = "b41b7ea54a0c9d92199de89e20e58d49f02f8e699814ef3fdf266f6f748d15c7"
 
 [[package]]
 name = "base64"
-version = "0.12.2"
+version = "0.12.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e223af0dc48c96d4f8342ec01a4974f139df863896b316681efd36742f22cc67"
+checksum = "3441f0f7b02788e948e47f457ca01f1d7e6d92c693bc132c22b087d3141c03ff"
 
 [[package]]
 name = "bitflags"
@@ -595,7 +595,7 @@ version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ed18eb2459bf1a09ad2d6b1547840c3e5e62882fa09b9a6a20b1de8e3228848f"
 dependencies = [
- "base64 0.12.2",
+ "base64 0.12.3",
  "bitflags",
  "bytes",
  "headers-core",
@@ -762,8 +762,7 @@ checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 [[package]]
 name = "lettre"
 version = "0.9.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bf43f3202a879fbdab4ecafec3349b0139f81d31c626246d53bcbb546253ffaa"
+source = "git+https://github.com/julien1619/lettre?branch=v0.9.x#48b300b283d81ffd4160d634d4b92b53f6228fa5"
 dependencies = [
  "base64 0.10.1",
  "bufstream",
@@ -780,8 +779,7 @@ dependencies = [
 [[package]]
 name = "lettre_email"
 version = "0.9.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fd02480f8dcf48798e62113974d6ccca2129a51d241fa20f1ea349c8a42559d5"
+source = "git+https://github.com/julien1619/lettre?branch=v0.9.x#48b300b283d81ffd4160d634d4b92b53f6228fa5"
 dependencies = [
  "base64 0.10.1",
  "email",
@@ -1897,9 +1895,9 @@ dependencies = [
 
 [[package]]
 name = "unicode-xid"
-version = "0.2.0"
+version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "826e7639553986605ec5979c7dd957c7895e93eabed50ab2ffa7f6128a75097c"
+checksum = "f7fe0bb3479651439c9112f72b6c505038574c9fbb575ed1bf3b797fa39dd564"
 
 [[package]]
 name = "url"

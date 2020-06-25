@@ -11,6 +11,7 @@ use template::{EmailData, TemplateStorage};
 
 pub struct Connector {
     smtp_client: SmtpClient,
+    smtp_domain: String,
     from_name: String,
     from_address: String,
     template_storage: TemplateStorage,
@@ -21,6 +22,8 @@ impl Connector {
     pub fn send(&self, data: Vec<impl EmailData>) {
         let mut mailer = self.smtp_client.clone().transport();
 
+        let message_id_suffix = format!("@{}", self.smtp_domain);
+
         for data in data.iter() {
             let email = data.compile_with(&self.template_storage);
 
@@ -28,7 +31,8 @@ impl Connector {
                 .to(email.to)
                 .from((self.from_address.clone(), self.from_name.clone()))
                 .subject(format!("=?UTF-8?B?{}?=", base64::encode(email.subject)))
-                .alternative(email.html, email.text);
+                .alternative(email.html, email.text)
+                .message_id_suffix(&message_id_suffix);
 
             // Handle embeds
             let builder = email.embeds.iter().fold(builder, |builder, embed| {
@@ -66,6 +70,7 @@ impl Connector {
 #[derive(Clone)]
 pub struct ConnectorBuilder {
     smtp_client: SmtpClient,
+    smtp_domain: String,
     from_name: String,
     from_address: String,
     template_storage: TemplateStorage,
@@ -91,7 +96,7 @@ impl ConnectorBuilder {
         // Prepare SMTP client
         let smtp_client = SmtpClient::new(smtp_server, ClientSecurity::Required(tls_parameters))
             .expect("Cannot create SMTP client")
-            .hello_name(ClientId::Domain(smtp_domain))
+            .hello_name(ClientId::Domain(smtp_domain.clone()))
             .authentication_mechanism(Mechanism::Login)
             .credentials(Credentials::new(smtp_login, smtp_password))
             .smtp_utf8(true)
@@ -99,6 +104,7 @@ impl ConnectorBuilder {
 
         ConnectorBuilder {
             smtp_client,
+            smtp_domain,
             from_name,
             from_address,
             template_storage: TemplateStorage::new(),
@@ -108,6 +114,7 @@ impl ConnectorBuilder {
     pub fn create(&self) -> Connector {
         Connector {
             smtp_client: self.smtp_client.clone(),
+            smtp_domain: self.smtp_domain.clone(),
             from_name: self.from_name.clone(),
             from_address: self.from_address.clone(),
             template_storage: self.template_storage.clone(),
