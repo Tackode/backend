@@ -762,7 +762,7 @@ checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 [[package]]
 name = "lettre"
 version = "0.9.3"
-source = "git+https://github.com/julien1619/lettre?branch=v0.9.x#48b300b283d81ffd4160d634d4b92b53f6228fa5"
+source = "git+https://github.com/julien1619/lettre?branch=v0.9.x#1360c6b723b6c024c441e37e37777b36cb8965d7"
 dependencies = [
  "base64 0.10.1",
  "bufstream",
@@ -779,7 +779,7 @@ dependencies = [
 [[package]]
 name = "lettre_email"
 version = "0.9.4"
-source = "git+https://github.com/julien1619/lettre?branch=v0.9.x#48b300b283d81ffd4160d634d4b92b53f6228fa5"
+source = "git+https://github.com/julien1619/lettre?branch=v0.9.x#1360c6b723b6c024c441e37e37777b36cb8965d7"
 dependencies = [
  "base64 0.10.1",
  "email",
