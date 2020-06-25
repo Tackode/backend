@@ -31,6 +31,7 @@ impl Connector {
                 .to(email.to)
                 .from((self.from_address.clone(), self.from_name.clone()))
                 .subject(email.subject)
+                .header(("Content-Transfer-Encoding", "8bit"))
                 .alternative(email.html, email.text)
                 .message_id_suffix(&message_id_suffix);
 
