@@ -38,6 +38,7 @@ impl DeviceValidationTemplate {
             precompiled: precompile_template(TemplateData {
                 name: "deviceValidation",
                 subject: "Validation de la session",
+                utf8_subject: false,
                 embeds: vec![("../assets/logo.png", mime::IMAGE_PNG)],
             }),
         }

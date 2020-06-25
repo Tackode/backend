@@ -52,6 +52,7 @@ impl InfectionWarningTemplate {
             precompiled: precompile_template(TemplateData {
                 name: "infectionWarning",
                 subject: "⚠️ Contact potentiel avec une personne infectée",
+                utf8_subject: true,
                 embeds: vec![("../assets/logo.png", mime::IMAGE_PNG)],
             }),
         }

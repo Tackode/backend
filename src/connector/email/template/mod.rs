@@ -26,6 +26,7 @@ struct Asset;
 pub struct TemplateData {
     pub name: &'static str,
     pub subject: &'static str,
+    pub utf8_subject: bool,
     pub embeds: Vec<(&'static str, Mime)>,
 }
 
@@ -35,6 +36,7 @@ pub struct PrecompiledTemplate {
     html: String,
     text: String,
     subject: String,
+    utf8_subject: bool,
     embeds: Vec<Embed>,
 }
 
@@ -89,6 +91,7 @@ fn precompile_template(data: TemplateData) -> PrecompiledTemplate {
         html: html.clone(),
         text: text.clone(),
         subject: data.subject.to_string(),
+        utf8_subject: data.utf8_subject,
         embeds,
     }
 }
@@ -124,6 +127,10 @@ impl PrecompiledTemplate {
             html = html.replace(&key, &value);
             text = text.replace(&key, &value);
             subject = subject.replace(&key, &value);
+        }
+
+        if self.utf8_subject {
+            subject = format!("=?UTF-8?B?{}?=", base64::encode(subject))
         }
 
         CompiledEmail {

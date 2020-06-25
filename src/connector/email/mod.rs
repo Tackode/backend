@@ -30,7 +30,7 @@ impl Connector {
             let builder = Email::builder()
                 .to(email.to)
                 .from((self.from_address.clone(), self.from_name.clone()))
-                .subject(format!("=?UTF-8?B?{}?=", base64::encode(email.subject)))
+                .subject(email.subject)
                 .alternative(email.html, email.text)
                 .message_id_suffix(&message_id_suffix);
 
