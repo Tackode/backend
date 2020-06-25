@@ -27,8 +27,8 @@ impl Connector {
             let builder = Email::builder()
                 .to(email.to)
                 .from((self.from_address.clone(), self.from_name.clone()))
-                .subject(email.subject)
-                .html(email.html);
+                .subject(format!("=?UTF-8?B?{}?=", base64::encode(email.subject)))
+                .alternative(email.html, email.text);
 
             // Handle embeds
             let builder = email.embeds.iter().fold(builder, |builder, embed| {

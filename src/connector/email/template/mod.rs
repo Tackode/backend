@@ -12,8 +12,12 @@ pub use infection_warning::InfectionWarningEmail;
 pub use storage::TemplateStorage;
 
 #[derive(RustEmbed)]
-#[folder = "emails/templates/"]
-struct Template;
+#[folder = "emails/html/"]
+struct Html;
+
+#[derive(RustEmbed)]
+#[folder = "emails/text/"]
+struct Text;
 
 #[derive(RustEmbed)]
 #[folder = "emails/assets/"]
@@ -29,6 +33,7 @@ pub struct TemplateData {
 pub struct PrecompiledTemplate {
     name: String,
     html: String,
+    text: String,
     subject: String,
     embeds: Vec<Embed>,
 }
@@ -48,14 +53,18 @@ pub trait EmailTemplate {
 pub struct CompiledEmail {
     pub to: String,
     pub html: String,
+    pub text: String,
     pub subject: String,
     pub embeds: Vec<Embed>,
 }
 
 fn precompile_template(data: TemplateData) -> PrecompiledTemplate {
     // Expect template html and txt
-    let mut html = template(format!("{}.html", data.name))
+    let mut html = html(format!("{}.html", data.name))
         .expect(&format!("{} HTML template not found", data.name));
+
+    let text = text(format!("{}.txt", data.name))
+        .expect(&format!("{} Text template not found", data.name));
 
     // Prepare and replace embeds
     let embeds =
@@ -78,6 +87,7 @@ fn precompile_template(data: TemplateData) -> PrecompiledTemplate {
     PrecompiledTemplate {
         name: data.name.to_string(),
         html: html.clone(),
+        text: text.clone(),
         subject: data.subject.to_string(),
         embeds,
     }
@@ -105,26 +115,33 @@ impl PrecompiledTemplate {
     fn compile(&self, to: String, data: HashMap<String, String>) -> CompiledEmail {
         // Replace all keys with values in html, text and subject
         let mut html = self.html.clone();
+        let mut text = self.text.clone();
         let mut subject = self.subject.clone();
 
         for (key, value) in data {
             let key = format!("{{{{{}}}}}", key);
 
             html = html.replace(&key, &value);
+            text = text.replace(&key, &value);
             subject = subject.replace(&key, &value);
         }
 
         CompiledEmail {
             to,
             html,
+            text,
             subject,
             embeds: self.embeds.clone(),
         }
     }
 }
 
-fn template(filename: String) -> Option<String> {
-    Template::get(&filename).and_then(|template| String::from_utf8(template.into()).ok())
+fn html(filename: String) -> Option<String> {
+    Html::get(&filename).and_then(|template| String::from_utf8(template.into()).ok())
+}
+
+fn text(filename: String) -> Option<String> {
+    Text::get(&filename).and_then(|template| String::from_utf8(template.into()).ok())
 }
 
 fn embed_in_template(

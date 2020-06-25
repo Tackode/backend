@@ -1,0 +1,11 @@
+# Covid-Journal
+
+## Contact possible avec une personne infectée
+
+Vous avez potentiellement été en contact avec une personne infectée lors de votre passage à cet endroit :
+
+**{{organizationName}}**
+**{{placeName}}**
+le {{checkinDateTime}}
+
+Veuillez vous rapprocher de votre médecin pour avoir plus d'informations sur la conduite à tenir.
