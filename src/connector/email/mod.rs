@@ -36,7 +36,14 @@ impl Connector {
 
             // Handle embeds
             let builder = email.embeds.iter().fold(builder, |builder, embed| {
-                let encoded_body = base64::encode(&embed.body);
+                // Prepare embed
+                let encoded_body = base64::encode(&embed.body)
+                    .as_bytes()
+                    .chunks(72)
+                    .map(|s| std::str::from_utf8(s).unwrap()) // base64 encoding is guaranteed to return utf-8, so this won't panic
+                    .collect::<Vec<_>>()
+                    .join("\r\n");
+
                 let content = PartBuilder::new()
                     .body(encoded_body)
                     .header((
