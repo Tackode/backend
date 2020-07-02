@@ -19,6 +19,7 @@ pub struct CheckinForm {
 }
 
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Checkin {
     pub id: Uuid,
     pub start_timestamp: DateTime<Utc>,
