@@ -31,7 +31,7 @@ warp = "0.2"
 [dependencies.lettre]
 git = "https://github.com/julien1619/lettre"
 default-features = false
-features = ["builder", "smtp-transport", "rustls-tls", "r2d2", "hostname", "serde", "tracing"]
+features = ["builder", "smtp-transport", "rustls-tls", "r2d2", "hostname", "serde"]
 
 [target.'cfg(any(unix, linux))'.dependencies]
 openssl = "0.10"

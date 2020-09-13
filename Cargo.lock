@@ -690,7 +690,6 @@ dependencies = [
  "regex",
  "rustls",
  "serde",
- "tracing",
  "uuid",
  "webpki",
  "webpki-roots",
