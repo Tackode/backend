@@ -4,7 +4,7 @@ use super::{
 };
 use chrono::{DateTime, Utc};
 use chrono_tz::Europe::Paris;
-use lettre_email::mime;
+use lettre::message::mime;
 use std::collections::HashMap;
 
 pub struct InfectionWarningEmail {

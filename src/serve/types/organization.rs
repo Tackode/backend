@@ -1,7 +1,6 @@
 use crate::model::organization::Organization as OrganizationModel;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use validator::Validate;
 
 #[derive(Serialize)]
 pub struct Organization {

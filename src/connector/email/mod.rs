@@ -1,129 +1,123 @@
 pub mod template;
 
-use lettre::smtp::authentication::{Credentials, Mechanism};
-use lettre::smtp::extension::ClientId;
-use lettre::smtp::ConnectionReuseParameters;
-use lettre::{ClientSecurity, ClientTlsParameters, SmtpClient, Transport};
-use lettre_email::{Email, MimeMultipartType, PartBuilder};
-use native_tls::{Protocol, TlsConnector};
-use std::env;
+use lettre::message::{header, MultiPart, SinglePart};
+use lettre::transport::smtp::authentication::Credentials;
+use lettre::transport::smtp::extension::ClientId;
+use lettre::{Address, Mailbox, Message, SmtpTransport, Transport};
+use std::{env, str::FromStr};
 use template::{EmailData, TemplateStorage};
 
 pub struct Connector {
-    smtp_client: SmtpClient,
+    smtp_transport: SmtpTransport,
     smtp_domain: String,
-    from_name: String,
-    from_address: String,
+    from: Mailbox,
     template_storage: TemplateStorage,
 }
 
 impl Connector {
     // Use EmailData to instanciate an email
     pub fn send(&self, data: Vec<impl EmailData>) {
-        let mut mailer = self.smtp_client.clone().transport();
-
-        let message_id_suffix = format!("@{}", self.smtp_domain);
-
         for data in data.iter() {
-            let email = data.compile_with(&self.template_storage);
+            match data.compile_with(&self.template_storage) {
+                Ok(email) => {
+                    let html_part = MultiPart::related().singlepart(
+                        SinglePart::quoted_printable()
+                            .header(header::ContentType(
+                                "text/html; charset=utf8".parse().unwrap(),
+                            ))
+                            .body(email.html.clone()),
+                    );
 
-            let builder = Email::builder()
-                .to(email.to)
-                .from((self.from_address.clone(), self.from_name.clone()))
-                .subject(email.subject)
-                .alternative(email.html, email.text)
-                .message_id_suffix(&message_id_suffix);
+                    // Handle embeds
+                    let html_part = email.embeds.iter().fold(html_part, |html_part, embed| {
+                        html_part.singlepart(
+                            SinglePart::base64()
+                                .header(header::ContentType(embed.content_type.clone()))
+                                .header(header::ContentDisposition {
+                                    disposition: header::DispositionType::Inline,
+                                    parameters: vec![],
+                                })
+                                .header(header::ContentId(format!("<{}>", embed.content_id)))
+                                .body(embed.body.clone()),
+                        )
+                    });
 
-            // Handle embeds
-            let builder = email.embeds.iter().fold(builder, |builder, embed| {
-                // Prepare embed
-                let encoded_body = base64::encode(&embed.body)
-                    .as_bytes()
-                    .chunks(72)
-                    .map(|s| std::str::from_utf8(s).unwrap()) // base64 encoding is guaranteed to return utf-8, so this won't panic
-                    .collect::<Vec<_>>()
-                    .join("\r\n");
+                    let message_id = format!("<{}@{}>", uuid::Uuid::new_v4(), self.smtp_domain);
 
-                let content = PartBuilder::new()
-                    .body(encoded_body)
-                    .header((
-                        "Content-Disposition",
-                        format!("attachment; filename=\"{}\"", embed.filename),
-                    ))
-                    .header((
-                        "Content-Type",
-                        format!("{}; name=\"{}\"", embed.content_type, embed.filename),
-                    ))
-                    .header(("Content-Transfer-Encoding", "base64"))
-                    .header(("Content-ID", format!("<{}>", embed.content_id)))
-                    .build();
+                    let message = Message::builder()
+                        .to(Mailbox::new(None, email.to))
+                        .from(self.from.clone())
+                        .subject(email.subject.clone())
+                        .message_id(Some(message_id))
+                        .multipart(
+                            MultiPart::alternative()
+                                .singlepart(
+                                    SinglePart::quoted_printable()
+                                        .header(header::ContentType(
+                                            "text/plain; charset=utf8".parse().unwrap(),
+                                        ))
+                                        .body(email.text),
+                                )
+                                .multipart(html_part),
+                        );
 
-                builder
-                    .message_type(MimeMultipartType::Mixed)
-                    .child(content)
-            });
+                    match message {
+                        Ok(message) => match self.smtp_transport.send(&message) {
+                            Ok(_) => (),
+                            Err(error) => log::error!("Error while sending email: {}", error),
+                        },
+                        Err(error) => log::error!("Error while building email: {}", error),
+                    }
+                }
 
-            builder
-                .build()
-                .ok()
-                .and_then(|email| mailer.send(email.into()).ok());
+                Err(error) => log::error!("Error while compiling email: {}", error),
+            }
         }
-
-        // Explicitly close the SMTP transaction as we enabled connection reuse
-        mailer.close();
     }
 }
 
 #[derive(Clone)]
 pub struct ConnectorBuilder {
-    smtp_client: SmtpClient,
+    smtp_transport: SmtpTransport,
     smtp_domain: String,
-    from_name: String,
-    from_address: String,
+    from: Mailbox,
     template_storage: TemplateStorage,
 }
 
 impl ConnectorBuilder {
     pub fn new() -> ConnectorBuilder {
-        let smtp_server = env::var("EMAIL_SMTP_SERVER").expect("Missing EMAIL_SMTP_SERVER");
         let smtp_domain = env::var("EMAIL_SMTP_DOMAIN").expect("EMAIL_SMTP_DOMAIN must be set");
         let smtp_login = env::var("EMAIL_SMTP_LOGIN").expect("EMAIL_SMTP_LOGIN must be set");
         let smtp_password =
             env::var("EMAIL_SMTP_PASSWORD").expect("EMAIL_SMTP_PASSWORD must be set");
         let from_name = env::var("EMAIL_FROM_NAME").expect("EMAIL_FROM_NAME must be set");
-        let from_address = env::var("EMAIL_FROM_ADDRESS").expect("EMAIL_FROM_ADDRESS must be set");
+        let from_address = env::var("EMAIL_FROM_ADDRESS")
+            .map(|add| Address::from_str(&add).expect("EMAIL_FROM_ADDRESS must be a valid address"))
+            .expect("EMAIL_FROM_ADDRESS must be set");
 
-        // Prepare TLS
-        let mut tls_builder = TlsConnector::builder();
-        tls_builder.min_protocol_version(Some(Protocol::Tlsv12));
-
-        let tls_parameters =
-            ClientTlsParameters::new(smtp_domain.clone(), tls_builder.build().unwrap());
+        // Prepare From
+        let from = Mailbox::new(Some(from_name), from_address);
 
         // Prepare SMTP client
-        let smtp_client = SmtpClient::new(smtp_server, ClientSecurity::Required(tls_parameters))
-            .expect("Cannot create SMTP client")
+        let smtp_transport = SmtpTransport::starttls_relay(&smtp_domain)
+            .expect("Unable to create SMTP relay")
             .hello_name(ClientId::Domain(smtp_domain.clone()))
-            .authentication_mechanism(Mechanism::Login)
             .credentials(Credentials::new(smtp_login, smtp_password))
-            .smtp_utf8(true)
-            .connection_reuse(ConnectionReuseParameters::ReuseUnlimited);
+            .build();
 
         ConnectorBuilder {
-            smtp_client,
+            smtp_transport,
             smtp_domain,
-            from_name,
-            from_address,
+            from,
             template_storage: TemplateStorage::new(),
         }
     }
 
     pub fn create(&self) -> Connector {
         Connector {
-            smtp_client: self.smtp_client.clone(),
+            smtp_transport: self.smtp_transport.clone(),
             smtp_domain: self.smtp_domain.clone(),
-            from_name: self.from_name.clone(),
-            from_address: self.from_address.clone(),
+            from: self.from.clone(),
             template_storage: self.template_storage.clone(),
         }
     }

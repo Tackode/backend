@@ -2,14 +2,21 @@ mod device_validation;
 mod infection_warning;
 mod storage;
 
-use lettre_email::mime::Mime;
+use custom_error::custom_error;
+use lettre::message::mime::Mime;
+use lettre::{address::AddressError, Address};
 use rust_embed::RustEmbed;
 use std::collections::HashMap;
 use std::path::Path;
+use std::str::FromStr;
 
 pub use device_validation::DeviceValidationEmail;
 pub use infection_warning::InfectionWarningEmail;
 pub use storage::TemplateStorage;
+
+custom_error! { pub Error
+    UnableToParseAddress{source: AddressError} = "Unable to parse address ({source}).",
+}
 
 #[derive(RustEmbed)]
 #[folder = "emails/html/"]
@@ -53,7 +60,7 @@ pub trait EmailTemplate {
 }
 
 pub struct CompiledEmail {
-    pub to: String,
+    pub to: Address,
     pub html: String,
     pub text: String,
     pub subject: String,
@@ -101,7 +108,7 @@ pub trait EmailData {
     fn template_from_storage(storage: &TemplateStorage) -> &dyn EmailTemplate;
     fn into(&self) -> HashMap<String, String>;
 
-    fn compile_with(&self, storage: &TemplateStorage) -> CompiledEmail {
+    fn compile_with(&self, storage: &TemplateStorage) -> Result<CompiledEmail, Error> {
         let mut data: HashMap<String, String> = self.into();
         data.insert(
             "frontPublicUrl".to_string(),
@@ -115,7 +122,7 @@ pub trait EmailData {
 }
 
 impl PrecompiledTemplate {
-    fn compile(&self, to: String, data: HashMap<String, String>) -> CompiledEmail {
+    fn compile(&self, to: String, data: HashMap<String, String>) -> Result<CompiledEmail, Error> {
         // Replace all keys with values in html, text and subject
         let mut html = self.html.clone();
         let mut text = self.text.clone();
@@ -133,13 +140,15 @@ impl PrecompiledTemplate {
             subject = format!("=?UTF-8?B?{}?=", base64::encode(subject))
         }
 
-        CompiledEmail {
-            to,
-            html,
-            text,
-            subject,
-            embeds: self.embeds.clone(),
-        }
+        Address::from_str(&to)
+            .map(|to| CompiledEmail {
+                to,
+                html,
+                text,
+                subject,
+                embeds: self.embeds.clone(),
+            })
+            .map_err(|error| error.into())
     }
 }
 

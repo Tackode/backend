@@ -2,7 +2,7 @@ use super::{
     precompile_template, EmailData, EmailTemplate, PrecompiledTemplate, TemplateData,
     TemplateStorage,
 };
-use lettre_email::mime;
+use lettre::message::mime;
 use std::collections::HashMap;
 
 pub struct DeviceValidationEmail {

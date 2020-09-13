@@ -86,11 +86,4 @@ joinable!(organization -> user (user_id));
 joinable!(place -> organization (organization_id));
 joinable!(session -> user (user_id));
 
-allow_tables_to_appear_in_same_query!(
-    checkin,
-    infection,
-    organization,
-    place,
-    session,
-    user,
-);
+allow_tables_to_appear_in_same_query!(checkin, infection, organization, place, session, user,);

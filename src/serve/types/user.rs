@@ -3,7 +3,6 @@ use crate::model::organization::Organization as OrganizationModel;
 use crate::model::user::{User as UserModel, UserRole};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use validator::Validate;
 
 #[derive(Serialize)]
 pub struct User {

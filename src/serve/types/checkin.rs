@@ -5,7 +5,6 @@ use crate::model::place::Place as PlaceModel;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use validator::Validate;
 
 #[derive(Deserialize, Validate)]
 #[serde(rename_all = "camelCase")]

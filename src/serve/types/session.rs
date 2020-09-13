@@ -3,7 +3,6 @@ use crate::model::session::Session as SessionModel;
 use crate::model::user::UserRole;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use validator::Validate;
 
 #[derive(Deserialize, Validate)]
 #[serde(rename_all = "camelCase")]
