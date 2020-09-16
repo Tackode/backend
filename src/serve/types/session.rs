@@ -4,6 +4,10 @@ use crate::model::user::UserRole;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+fn default_as_true() -> bool {
+    true
+}
+
 #[derive(Deserialize, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct LoginForm {
@@ -12,6 +16,8 @@ pub struct LoginForm {
     pub role: UserRole,
     #[validate(length(min = 1, max = 60))]
     pub organization_name: Option<String>,
+    #[serde(default = "default_as_true")]
+    pub fallback_on_sign_up: bool,
 }
 
 #[derive(Deserialize, Validate)]

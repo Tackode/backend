@@ -97,6 +97,11 @@ async fn login(
     // Get login
     let (login, stored_email) = get_auth_from_email(data.email.clone(), true);
 
+    if !data.fallback_on_sign_up && !user::exist_with_login(&connector, &login)? {
+        // Do not create user if it doesn't exist
+        return Err(warp::reject::custom(Error::Unauthorized));
+    }
+
     // Upsert user
     let user = user::insert(
         &connector,

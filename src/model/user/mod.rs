@@ -18,6 +18,17 @@ pub fn get(connector: &Connector, id: &Uuid) -> Result<User, Error> {
         .map_err(|error| error.into())
 }
 
+pub fn exist_with_login(connector: &Connector, login: &String) -> Result<bool, Error> {
+    let connection = connector.local.pool.get()?;
+
+    dsl::user
+        .select(diesel::dsl::count(dsl::id))
+        .filter(dsl::login.eq(login).and(dsl::disabled.eq(false)))
+        .first(&connection)
+        .map_err(|error| error.into())
+        .map(|count: i64| count > 0)
+}
+
 pub fn get_with_login(connector: &Connector, login: &String) -> Result<User, Error> {
     let connection = connector.local.pool.get()?;
 
