@@ -9,6 +9,36 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
+
+      - name: Prepare
+        id: prep
+        run: |
+          DOCKER_IMAGE=ghcr.io/covidjournal/covid-journal-backend
+          VERSION=noop
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            VERSION=nightly
+          elif [[ $GITHUB_REF == refs/tags/* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/}
+          elif [[ $GITHUB_REF == refs/heads/* ]]; then
+            VERSION=$(echo ${GITHUB_REF#refs/heads/} | sed -r 's#/+#-#g')
+            if [ "${{ github.event.repository.default_branch }}" = "$VERSION" ]; then
+              VERSION=edge
+            fi
+          elif [[ $GITHUB_REF == refs/pull/* ]]; then
+            VERSION=pr-${{ github.event.number }}
+          fi
+          TAGS="${DOCKER_IMAGE}:${VERSION}"
+          if [[ $VERSION =~ ^v[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+            MINOR=${VERSION%.*}
+            MAJOR=${MINOR%.*}
+            TAGS="$TAGS,${DOCKER_IMAGE}:${MINOR},${DOCKER_IMAGE}:${MAJOR},${DOCKER_IMAGE}:latest"
+          elif [ "${{ github.event_name }}" = "push" ]; then
+            TAGS="$TAGS,${DOCKER_IMAGE}:sha-${GITHUB_SHA::8}"
+          fi
+          echo ::set-output name=version::${VERSION}
+          echo ::set-output name=tags::${TAGS}
+          echo ::set-output name=created::$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+
       - name: Caching
         uses: actions/cache@v2
         with:
@@ -17,6 +47,7 @@ jobs:
             ~/.cargo/git
             target
           key: ${{ runner.os }}-cargo-musl-${{ hashFiles('**/Cargo.lock') }}
+
       - name: Build for MUSL
         run: |
           mkdir -p ~/.cargo/{git,registry}
@@ -27,26 +58,47 @@ jobs:
             -v $GITHUB_WORKSPACE:/volume \
             --rm -t clux/muslrust:stable \
             sh -c "/volume/build-musl.sh && chown -R $(id -u):$(id -g) ./target /root/.cargo/registry /root/.cargo/git"
+
       - name: Archive production artifact
         uses: actions/upload-artifact@v2
         with:
           name: covid-journal-backend
           path: dist/backend
-      - name: Get version
-        id: get_version
-        run: echo ::set-output name=VERSION::${GITHUB_REF##*/}
-      - name: Docker build
-        env:
-          IMAGE_NAME: covid-journal-backend
-          VERSION: ${{ steps.get_version.outputs.VERSION }}
-        run: |
-          docker build --tag $IMAGE_NAME:$VERSION "./dist"
-      - name: Docker publish
-        env:
-          IMAGE_NAME: covid-journal-backend
-          VERSION: ${{ steps.get_version.outputs.VERSION }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo "$GITHUB_TOKEN" | docker login docker.pkg.github.com -u $GITHUB_ACTOR --password-stdin
-          docker tag $IMAGE_NAME:$VERSION docker.pkg.github.com/covidjournal/backend/$IMAGE_NAME:$VERSION
-          docker push docker.pkg.github.com/covidjournal/backend/$IMAGE_NAME:$VERSION
+
+      - name: Cache Docker layers
+        if: github.event_name != 'pull_request'
+        uses: actions/cache@v2
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      - name: Set up QEMU
+        if: github.event_name != 'pull_request'
+        uses: docker/setup-qemu-action@v1
+
+      - name: Set up Docker Buildx
+        if: github.event_name != 'pull_request'
+        uses: docker/setup-buildx-action@v1
+        with:
+          driver-opts: image=moby/buildkit:master
+
+      - name: Login to GHCR
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_PAT }}
+
+      - name: Docker build and push
+        if: github.event_name != 'pull_request'
+        uses: docker/build-push-action@v2
+        with:
+          context: ./dist
+          file: ./dist/Dockerfile
+          push: true
+          tags: ${{ steps.prep.outputs.tags }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache
