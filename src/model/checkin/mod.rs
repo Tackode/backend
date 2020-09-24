@@ -27,6 +27,15 @@ pub fn get_all_with_user(
         .map_err(|error| error.into())
 }
 
+pub fn delete_all_with_user(connector: &Connector, user_id: &Uuid) -> Result<(), Error> {
+    let connection = connector.local.pool.get()?;
+
+    diesel::delete(dsl::checkin.filter(dsl::user_id.eq(user_id)))
+        .execute(&connection)
+        .map_err(|error| error.into())
+        .map(|_| ())
+}
+
 pub fn insert(connector: &Connector, checkin: &CheckinInsert) -> Result<Uuid, Error> {
     let connection = connector.local.pool.get()?;
 

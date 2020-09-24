@@ -33,7 +33,14 @@ pub fn routes(context: Context) -> BoxedFilter<(impl Reply,)> {
         .and(context_filter.clone())
         .and_then(get_all);
 
-    checkin.or(get_checkins).boxed()
+    // DELETE /checkins -> 200
+    let delete_checkins = warp::delete()
+        .and(warp::path!("checkins"))
+        .and(public_user_filter(context.clone()))
+        .and(context_filter.clone())
+        .and_then(delete_all);
+
+    checkin.or(get_checkins).or(delete_checkins).boxed()
 }
 
 async fn create(
@@ -111,4 +118,10 @@ async fn get_all(public: PublicUser, context: Context) -> Result<impl Reply, Rej
     Ok(warp::reply::json(&checkins))
 }
 
-// TODO: delete all for user
+async fn delete_all(public: PublicUser, context: Context) -> Result<impl Reply, Rejection> {
+    let connector = context.builders.create();
+
+    checkin::delete_all_with_user(&connector, &public.user.id)?;
+
+    Ok(warp::reply())
+}
