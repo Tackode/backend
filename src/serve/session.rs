@@ -26,7 +26,10 @@ pub fn create_session(
     // Send validation URL
     connector.email.send(vec![DeviceValidationEmail {
         to: email_address,
-        url: format!("/validate-session?sessionId={}&token={}", session.id, token),
+        url: format!(
+            "/validate-session/?sessionId={}&token={}",
+            session.id, token
+        ),
     }]);
 
     Ok(session)
