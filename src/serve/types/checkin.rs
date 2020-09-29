@@ -12,7 +12,6 @@ pub struct CheckinForm {
     pub place_id: Uuid,
     #[validate(email)]
     pub email: String,
-    pub store_email: bool,
     #[validate(range(min = 1, max = 480))]
     pub duration: i64,
 }

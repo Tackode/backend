@@ -94,8 +94,7 @@ pub fn get_potential_infections(
             dsl::place_id
                 .eq_any(places_ids)
                 .and(dsl::start_timestamp.le(end_timestamp))
-                .and(dsl::end_timestamp.ge(start_timestamp))
-                .and(user::dsl::email.is_not_null()),
+                .and(dsl::end_timestamp.ge(start_timestamp)),
         )
         .load::<(Checkin, User, Place)>(&connection)
         .map_err(|error| error.into())

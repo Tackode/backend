@@ -19,7 +19,7 @@ pub enum UserRole {
 pub struct User {
     pub id: Uuid,
     pub login: String,
-    pub email: Option<String>,
+    pub email: String,
     pub role: UserRole,
     pub confirmed: bool,
     pub disabled: bool,
@@ -31,7 +31,7 @@ pub struct User {
 #[table_name = "user"]
 pub struct UserInsert {
     pub login: String,
-    pub email: Option<String>,
+    pub email: String,
     pub role: UserRole,
 }
 

@@ -11,7 +11,7 @@ pub fn routes(context: Context) -> BoxedFilter<(impl Reply,)> {
     let moved_context = context.clone();
     let context_filter = warp::any().map(move || moved_context.clone());
 
-    // POST /checkin {uuid, email, store_email, duration} -> 200
+    // POST /checkin {uuid, email, duration} -> 200
     let checkin = warp::post()
         .and(warp::path!("checkin"))
         .and(warp::body::content_length_limit(CONTENT_LENGTH_LIMIT))
@@ -63,12 +63,12 @@ async fn create(
     place::get(&connector, &data.place_id)?;
 
     // Hash email to get login
-    let (login, stored_email) = get_auth_from_email(data.email.clone(), data.store_email);
+    let (login, cleaned_email) = get_auth_from_email(data.email.clone());
 
     // Generate user and session
     let (user, session) = match public {
         Some(public) => {
-            user::set_email_with_login(&connector, &login, &stored_email)?;
+            user::set_email_with_login(&connector, &login, &cleaned_email)?;
             (public.user, public.session)
         }
         None => {
@@ -76,7 +76,7 @@ async fn create(
                 &connector,
                 &user::UserInsert {
                     login,
-                    email: stored_email,
+                    email: cleaned_email,
                     role: user::UserRole::Public,
                 },
                 true,

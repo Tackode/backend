@@ -35,17 +35,10 @@ pub fn create_session(
     Ok(session)
 }
 
-pub fn get_auth_from_email(email: String, store_email: bool) -> (String, Option<String>) {
+pub fn get_auth_from_email(email: String) -> (String, String) {
     // Hash email to get login
     let cleaned_email = email.to_lowercase();
     let login = hash(cleaned_email.clone());
 
-    // Prepare stored user email
-    let stored_email = if store_email {
-        Some(cleaned_email)
-    } else {
-        None
-    };
-
-    (login, stored_email)
+    (login, cleaned_email)
 }
