@@ -1,4 +1,4 @@
-use super::types::Session;
+use super::types::{RedirectPage, Session};
 use crate::connector::{email::template::DeviceValidationEmail, Connector};
 use crate::model::error::Error;
 use crate::model::session;
@@ -10,6 +10,7 @@ pub fn create_session(
     user_id: Uuid,
     email_address: String,
     description: String,
+    redirect_page: RedirectPage,
 ) -> Result<Session, Error> {
     // Create session with confirmation token
     let token = generate_token();
@@ -23,12 +24,20 @@ pub fn create_session(
     )?
     .into();
 
+    let redirect = match redirect_page {
+        RedirectPage::CheckinConfirmation { place_id } => {
+            format!("redirect=checkinConfirmation&placeId={}", place_id)
+        }
+        RedirectPage::Checkins => String::from("redirect=checkins"),
+        RedirectPage::Places => String::from("redirect=places"),
+    };
+
     // Send validation URL
     connector.email.send(vec![DeviceValidationEmail {
         to: email_address,
         url: format!(
-            "/validate-session/?sessionId={}&token={}",
-            session.id, token
+            "/validate-session/?sessionId={}&token={}&{}",
+            session.id, token, redirect
         ),
     }]);
 

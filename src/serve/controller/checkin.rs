@@ -83,7 +83,15 @@ async fn create(
             )?
             .into();
 
-            let session = create_session(&connector, user.id, data.email, user_agent)?;
+            let session = create_session(
+                &connector,
+                user.id,
+                data.email,
+                user_agent,
+                RedirectPage::CheckinConfirmation {
+                    place_id: data.place_id,
+                },
+            )?;
 
             (user, session)
         }

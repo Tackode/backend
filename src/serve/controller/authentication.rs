@@ -136,8 +136,13 @@ async fn login(
         }
     }
 
+    let redirect_page = match user.role {
+        user::UserRole::Public => RedirectPage::Checkins,
+        user::UserRole::Professional => RedirectPage::Places,
+    };
+
     // Create session with confirmation token
-    let session = create_session(&connector, user.id, data.email, user_agent)?;
+    let session = create_session(&connector, user.id, data.email, user_agent, redirect_page)?;
 
     // Return session_id
     Ok(warp::reply::json(&session))
