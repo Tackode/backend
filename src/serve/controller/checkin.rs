@@ -11,7 +11,7 @@ pub fn routes(context: Context) -> BoxedFilter<(impl Reply,)> {
     let moved_context = context.clone();
     let context_filter = warp::any().map(move || moved_context.clone());
 
-    // POST /checkin {uuid, email, store_email, duration} -> 200
+    // POST /checkin {uuid, email, duration} -> 200
     let checkin = warp::post()
         .and(warp::path!("checkin"))
         .and(warp::body::content_length_limit(CONTENT_LENGTH_LIMIT))
@@ -33,7 +33,14 @@ pub fn routes(context: Context) -> BoxedFilter<(impl Reply,)> {
         .and(context_filter.clone())
         .and_then(get_all);
 
-    checkin.or(get_checkins).boxed()
+    // DELETE /checkins -> 200
+    let delete_checkins = warp::delete()
+        .and(warp::path!("checkins"))
+        .and(public_user_filter(context.clone()))
+        .and(context_filter.clone())
+        .and_then(delete_all);
+
+    checkin.or(get_checkins).or(delete_checkins).boxed()
 }
 
 async fn create(
@@ -56,12 +63,12 @@ async fn create(
     place::get(&connector, &data.place_id)?;
 
     // Hash email to get login
-    let (login, stored_email) = get_auth_from_email(data.email.clone(), data.store_email);
+    let (login, cleaned_email) = get_auth_from_email(data.email.clone());
 
     // Generate user and session
     let (user, session) = match public {
         Some(public) => {
-            user::set_email_with_login(&connector, &login, &stored_email)?;
+            user::set_email_with_login(&connector, &login, &cleaned_email)?;
             (public.user, public.session)
         }
         None => {
@@ -69,14 +76,22 @@ async fn create(
                 &connector,
                 &user::UserInsert {
                     login,
-                    email: stored_email,
+                    email: cleaned_email,
                     role: user::UserRole::Public,
                 },
                 true,
             )?
             .into();
 
-            let session = create_session(&connector, user.id, data.email, user_agent)?;
+            let session = create_session(
+                &connector,
+                user.id,
+                data.email,
+                user_agent,
+                RedirectPage::CheckinConfirmation {
+                    place_id: data.place_id,
+                },
+            )?;
 
             (user, session)
         }
@@ -111,4 +126,10 @@ async fn get_all(public: PublicUser, context: Context) -> Result<impl Reply, Rej
     Ok(warp::reply::json(&checkins))
 }
 
-// TODO: delete all for user
+async fn delete_all(public: PublicUser, context: Context) -> Result<impl Reply, Rejection> {
+    let connector = context.builders.create();
+
+    checkin::delete_all_with_user(&connector, &public.user.id)?;
+
+    Ok(warp::reply())
+}

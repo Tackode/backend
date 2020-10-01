@@ -69,7 +69,7 @@ async fn create(
         infected_users
             .iter()
             .map(|(checkin, user, place)| InfectionWarningEmail {
-                to: user.email.clone().unwrap(), // Already checked in model
+                to: user.email.clone(),
                 organization_name: professional.organization.name.clone(),
                 place_name: place.name.clone(),
                 checkin_datetime: checkin.start_timestamp,

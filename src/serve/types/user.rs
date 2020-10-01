@@ -8,7 +8,7 @@ use uuid::Uuid;
 pub struct User {
     pub id: Uuid,
     pub role: UserRole,
-    pub email: Option<String>,
+    pub email: String,
 }
 
 pub struct PublicUser {
@@ -26,14 +26,14 @@ pub struct ProfessionalUser {
 pub struct Profile {
     pub id: Uuid,
     pub role: UserRole,
-    pub email: Option<String>,
+    pub email: String,
     pub organization: Option<Organization>,
 }
 
 #[derive(Deserialize, Validate)]
 pub struct ProfileForm {
     #[validate(email)]
-    pub email: Option<String>,
+    pub email: String,
 }
 
 impl From<UserModel> for User {

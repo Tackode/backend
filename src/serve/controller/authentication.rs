@@ -58,6 +58,7 @@ async fn validate(
     let hashed_confirmation_token = hash(data.confirmation_token);
 
     // Find session
+    // TODO: Handle error code with already confirmed session
     let (session, user) =
         session::get_unconfirmed(&connector, &session_id, &hashed_confirmation_token)?;
 
@@ -95,7 +96,7 @@ async fn login(
     let connector = context.builders.create();
 
     // Get login
-    let (login, stored_email) = get_auth_from_email(data.email.clone(), true);
+    let (login, cleaned_email) = get_auth_from_email(data.email.clone());
 
     if !data.fallback_on_sign_up && !user::exist_with_login(&connector, &login)? {
         // Do not create user if it doesn't exist
@@ -107,7 +108,7 @@ async fn login(
         &connector,
         &user::UserInsert {
             login,
-            email: stored_email,
+            email: cleaned_email,
             role: data.role,
         },
         false,
@@ -135,8 +136,13 @@ async fn login(
         }
     }
 
+    let redirect_page = match user.role {
+        user::UserRole::Public => RedirectPage::Checkins,
+        user::UserRole::Professional => RedirectPage::Places,
+    };
+
     // Create session with confirmation token
-    let session = create_session(&connector, user.id, data.email, user_agent)?;
+    let session = create_session(&connector, user.id, data.email, user_agent, redirect_page)?;
 
     // Return session_id
     Ok(warp::reply::json(&session))

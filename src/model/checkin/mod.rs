@@ -27,6 +27,15 @@ pub fn get_all_with_user(
         .map_err(|error| error.into())
 }
 
+pub fn delete_all_with_user(connector: &Connector, user_id: &Uuid) -> Result<(), Error> {
+    let connection = connector.local.pool.get()?;
+
+    diesel::delete(dsl::checkin.filter(dsl::user_id.eq(user_id)))
+        .execute(&connection)
+        .map_err(|error| error.into())
+        .map(|_| ())
+}
+
 pub fn insert(connector: &Connector, checkin: &CheckinInsert) -> Result<Uuid, Error> {
     let connection = connector.local.pool.get()?;
 
@@ -85,8 +94,7 @@ pub fn get_potential_infections(
             dsl::place_id
                 .eq_any(places_ids)
                 .and(dsl::start_timestamp.le(end_timestamp))
-                .and(dsl::end_timestamp.ge(start_timestamp))
-                .and(user::dsl::email.is_not_null()),
+                .and(dsl::end_timestamp.ge(start_timestamp)),
         )
         .load::<(Checkin, User, Place)>(&connection)
         .map_err(|error| error.into())

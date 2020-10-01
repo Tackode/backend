@@ -8,6 +8,14 @@ fn default_as_true() -> bool {
     true
 }
 
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum RedirectPage {
+    CheckinConfirmation { place_id: Uuid },
+    Checkins,
+    Places,
+}
+
 #[derive(Deserialize, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct LoginForm {

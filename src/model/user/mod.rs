@@ -91,21 +91,11 @@ pub fn confirm(connector: &Connector, id: &Uuid) -> Result<(), Error> {
 pub fn set_email_with_login(
     connector: &Connector,
     login: &String,
-    email: &Option<String>,
+    email: &String,
 ) -> Result<(), Error> {
     let connection = connector.local.pool.get()?;
 
     diesel::update(dsl::user.filter(dsl::login.eq(login).and(dsl::disabled.eq(false))))
-        .set(dsl::email.eq(email))
-        .execute(&connection)
-        .map_err(|error| error.into())
-        .and_then(|count| is_one(count, "User"))
-}
-
-pub fn set_email(connector: &Connector, id: &Uuid, email: &Option<String>) -> Result<(), Error> {
-    let connection = connector.local.pool.get()?;
-
-    diesel::update(dsl::user.filter(dsl::id.eq(id).and(dsl::disabled.eq(false))))
         .set(dsl::email.eq(email))
         .execute(&connection)
         .map_err(|error| error.into())
