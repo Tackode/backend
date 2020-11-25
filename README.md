@@ -1,4 +1,4 @@
-# Covid-Journal Backend ![Rust](https://github.com/CovidJournal/backend/workflows/Rust/badge.svg)
+# Covid-Journal Backend ![Build](https://github.com/CovidJournal/backend/workflows/Build/badge.svg)
 
 REST API for Covid-Journal.
 
