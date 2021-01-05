@@ -1,8 +1,8 @@
 <mj-section padding="0px 20px 20px">
   <mj-column>
     <mj-text padding="0px" align="center" font-size="16px" color="#3c3c3c">
-      <a style="color:#3c3c3c; text-decoration: none; color: inherit;" href="https://covid-journal.org">
-        covid-journal.org
+      <a style="color:#3c3c3c; text-decoration: none; color: inherit;" href="https://tackode.com">
+        tackode.com
       </a>
     </mj-text>
   </mj-column>

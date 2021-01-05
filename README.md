@@ -1,6 +1,6 @@
-# Covid-Journal Backend ![Build](https://github.com/CovidJournal/backend/workflows/Build/badge.svg)
+# Tackode Backend ![Build](https://github.com/Tackode/backend/workflows/Build/badge.svg)
 
-REST API for Covid-Journal.
+REST API for Tackode.
 
 ## Getting started
 
@@ -16,8 +16,8 @@ Setup a postgresql database (macOS commands).
 
 ```
 brew install postgresql
-createuser --pwprompt --superuser covidjournal # set password to covidjournalpw for instance
-createdb --owner=covidjournal covidjournal
+createuser --pwprompt --superuser tackode # set password to tackodepw for instance
+createdb --owner=tackode tackode
 ```
 
 You can use Docker Compose and run the database:

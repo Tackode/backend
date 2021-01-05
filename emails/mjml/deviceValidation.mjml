@@ -13,6 +13,7 @@
         -moz-box-shadow: 0 15px 46px 0 rgba(3, 6, 52, 0.05);
         box-shadow: 0 15px 46px 0 rgba(3, 6, 52, 0.05);
       }
+
     </mj-style>
   </mj-head>
   <mj-body background-color="#f5f5f5">
@@ -30,7 +31,7 @@
       <!-- Action fin -->
       <mj-section padding="20px 20px 20px">
         <mj-column>
-          <mj-text>Pour valider votre session sur Covid-Journal, merci de cliquer sur le lien ci-dessous.</mj-text>
+          <mj-text>Pour valider votre session sur Tackode, merci de cliquer sur le lien ci-dessous.</mj-text>
           <mj-text>Si vous n'êtes pas à l'origine de cette demande, merci d'ignorer ce message.</mj-text>
           <mj-button padding="20px 0px 0px" href="{{frontPublicUrl}}{{url}}">Valider ma session</mj-button>
         </mj-column>

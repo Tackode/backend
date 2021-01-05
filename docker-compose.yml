@@ -4,8 +4,8 @@ services:
   postgres:
     image: "postgres:10.7"
     environment:
-      - POSTGRES_USER=covidjournal
-      - POSTGRES_PASSWORD=covidjournalpw
-      - POSTGRES_DB=covidjournal
+      - POSTGRES_USER=tackode
+      - POSTGRES_PASSWORD=tackodepw
+      - POSTGRES_DB=tackode
     ports:
       - 5432:5432
