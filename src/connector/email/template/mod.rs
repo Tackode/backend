@@ -172,7 +172,7 @@ fn embed_in_template(
         .and_then(|(embed_filepath, filename)| // Load file
             Asset::get(&embed_filepath).map(|body| {
                 // Replace references in template by content id
-                let content_id = filename.clone(); // format!("{}@covid-journal.org", filename);
+                let content_id = filename.clone(); // format!("{}@tackode.com", filename);
                 let content_id_tmpl = format!("cid:{}", content_id);
                 let new_template = template.replace(filepath, &content_id_tmpl);
 

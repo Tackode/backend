@@ -1,9 +1,9 @@
 pub mod template;
 
-use lettre::message::{header, MultiPart, SinglePart};
+use lettre::message::{header, Mailbox, MultiPart, SinglePart};
 use lettre::transport::smtp::authentication::Credentials;
 use lettre::transport::smtp::extension::ClientId;
-use lettre::{Address, Mailbox, Message, SmtpTransport, Transport};
+use lettre::{Address, Message, SmtpTransport, Transport};
 use std::{env, str::FromStr};
 use template::{EmailData, TemplateStorage};
 

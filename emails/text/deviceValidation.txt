@@ -1,8 +1,8 @@
-# Covid-Journal
+# Tackode
 
 ## Validation de la session
 
-Pour valider votre session sur Covid-Journal, merci d'ouvrir le lien ci-dessous.
+Pour valider votre session sur Tackode, merci d'ouvrir le lien ci-dessous.
 
 Si vous n'êtes pas à l'origine de cette demande, merci d'ignorer ce message.
 
