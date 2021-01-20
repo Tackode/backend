@@ -27,7 +27,7 @@ tokio = { version = "0.2", features = ["macros", "rt-threaded"] }
 uuid = { version = "0.8", features = ["serde", "v4"] }
 validator = "0.12"
 validator_derive = "0.12"
-warp = "0.2"
+warp = "0.3"
 
 [dependencies.lettre]
 version = "0.10.0-alpha.4"
