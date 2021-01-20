@@ -1,6 +1,7 @@
 use custom_error::custom_error;
 use serde::Serialize;
 use std::convert::Infallible;
+use tracing::error;
 use validator::ValidationErrors;
 use warp::http::StatusCode;
 use warp::{reject, Rejection, Reply};
@@ -36,7 +37,7 @@ pub async fn handle_rejection(err: Rejection) -> Result<impl Reply, Infallible> 
     let response: InternalErrorResponse;
 
     if let Some(error) = err.find::<Error>() {
-        log::error!("{:?}", error);
+        error!("{:?}", error);
 
         response = InternalErrorResponse {
             code: match error {
@@ -57,7 +58,7 @@ pub async fn handle_rejection(err: Rejection) -> Result<impl Reply, Infallible> 
                 message: String::from("Unauthorized"),
             };
         } else {
-            log::error!("Missing header: {:?}", missing_header);
+            error!("Missing header: {:?}", missing_header);
 
             response = InternalErrorResponse {
                 code: StatusCode::BAD_REQUEST,
@@ -65,14 +66,14 @@ pub async fn handle_rejection(err: Rejection) -> Result<impl Reply, Infallible> 
             };
         }
     } else if let Some(body_error) = err.find::<warp::body::BodyDeserializeError>() {
-        log::error!("Body error: {:?}", body_error);
+        error!("Body error: {:?}", body_error);
 
         response = InternalErrorResponse {
             code: StatusCode::BAD_REQUEST,
             message: String::from("Bad request"),
         };
     } else if let Some(_) = err.find::<warp::reject::MethodNotAllowed>() {
-        log::error!("Maybe not found error: {:?}", err);
+        error!("Maybe not found error: {:?}", err);
 
         // Must be a not found response
         response = InternalErrorResponse {
@@ -80,7 +81,7 @@ pub async fn handle_rejection(err: Rejection) -> Result<impl Reply, Infallible> 
             message: String::from("Not found"),
         };
     } else {
-        log::error!("Unhandled error: {:?}", err);
+        error!("Unhandled error: {:?}", err);
 
         response = InternalErrorResponse {
             code: StatusCode::INTERNAL_SERVER_ERROR,

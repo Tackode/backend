@@ -6,6 +6,7 @@ use crate::model::{session, user};
 use crate::security::hash;
 use base64::decode;
 use std::str::FromStr;
+use tracing::debug;
 use uuid::Uuid;
 use warp::{reject, Filter, Rejection};
 
@@ -119,12 +120,12 @@ impl FromStr for Credentials {
                     Ok(Credentials { username, password })
                 }
                 Err(e) => {
-                    log::debug!("Basic::from_utf8 error={:?}", e);
+                    debug!("Basic::from_utf8 error={:?}", e);
                     Err(CredentialsError)
                 }
             },
             Err(e) => {
-                log::debug!("Basic::from_base64 error={:?}", e);
+                debug!("Basic::from_base64 error={:?}", e);
                 Err(CredentialsError)
             }
         }

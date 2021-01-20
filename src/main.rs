@@ -15,14 +15,15 @@ mod serve;
 
 use connector::ConnectorBuilder;
 use dotenv::dotenv;
+use tracing_subscriber;
 
 #[tokio::main]
 async fn main() {
     // Load configuration
     dotenv().ok();
 
-    // Load logger
-    pretty_env_logger::init();
+    // Load Tracing
+    tracing_subscriber::fmt::init();
 
     // Load database
     let connector_builders = ConnectorBuilder::new();

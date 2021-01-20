@@ -6,6 +6,7 @@ use lettre::transport::smtp::extension::ClientId;
 use lettre::{Address, Message, SmtpTransport, Transport};
 use std::{env, str::FromStr};
 use template::{EmailData, TemplateStorage};
+use tracing::error;
 
 pub struct Connector {
     smtp_transport: SmtpTransport,
@@ -64,13 +65,13 @@ impl Connector {
                     match message {
                         Ok(message) => match self.smtp_transport.send(&message) {
                             Ok(_) => (),
-                            Err(error) => log::error!("Error while sending email: {}", error),
+                            Err(error) => error!("Error while sending email: {}", error),
                         },
-                        Err(error) => log::error!("Error while building email: {}", error),
+                        Err(error) => error!("Error while building email: {}", error),
                     }
                 }
 
-                Err(error) => log::error!("Error while compiling email: {}", error),
+                Err(error) => error!("Error while compiling email: {}", error),
             }
         }
     }

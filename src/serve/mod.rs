@@ -7,6 +7,7 @@ mod types;
 use crate::connector::ConnectorBuilder;
 use error::handle_rejection;
 use std::{env, net::SocketAddr};
+use tracing::info;
 use types::Context;
 use warp::{http::header, http::Method, Filter};
 
@@ -45,8 +46,8 @@ pub async fn run(builders: ConnectorBuilder) {
         .recover(handle_rejection)
         .with(cors);
 
-    log::info!("Configured for {}", environment);
-    log::info!("Listening on {}", addr);
+    info!("Configured for {}", environment);
+    info!("Listening on {}", addr);
 
     warp::serve(routes).run(addr).await;
 }
