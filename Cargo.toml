@@ -30,7 +30,7 @@ validator_derive = "0.12"
 warp = { version = "0.3", default-features = false }
 
 [dependencies.lettre]
-version = "0.10.0-alpha.4"
+version = "0.10.0-beta.2"
 default-features = false
 features = ["builder", "smtp-transport", "rustls-tls", "r2d2", "hostname", "serde"]
 
