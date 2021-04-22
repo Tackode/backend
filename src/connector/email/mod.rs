@@ -22,7 +22,7 @@ impl Connector {
             match data.compile_with(&self.template_storage) {
                 Ok(email) => {
                     let html_part = MultiPart::related().singlepart(
-                        SinglePart::quoted_printable()
+                        SinglePart::builder()
                             .header(header::ContentType(
                                 "text/html; charset=utf8".parse().unwrap(),
                             ))
@@ -32,7 +32,7 @@ impl Connector {
                     // Handle embeds
                     let html_part = email.embeds.iter().fold(html_part, |html_part, embed| {
                         html_part.singlepart(
-                            SinglePart::base64()
+                            SinglePart::builder()
                                 .header(header::ContentType(embed.content_type.clone()))
                                 .header(header::ContentDisposition {
                                     disposition: header::DispositionType::Inline,
@@ -53,7 +53,7 @@ impl Connector {
                         .multipart(
                             MultiPart::alternative()
                                 .singlepart(
-                                    SinglePart::quoted_printable()
+                                    SinglePart::builder()
                                         .header(header::ContentType(
                                             "text/plain; charset=utf8".parse().unwrap(),
                                         ))
