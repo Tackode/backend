@@ -65,17 +65,20 @@ async fn create(
         &data.end_timestamp,
     )?;
 
-    connector.email.send(
-        infected_users
-            .iter()
-            .map(|(checkin, user, place)| InfectionWarningEmail {
-                to: user.email.clone(),
-                organization_name: professional.organization.name.clone(),
-                place_name: place.name.clone(),
-                checkin_datetime: checkin.start_timestamp,
-            })
-            .collect(),
-    );
+    connector
+        .email
+        .send(
+            infected_users
+                .iter()
+                .map(|(checkin, user, place)| InfectionWarningEmail {
+                    to: user.email.clone(),
+                    organization_name: professional.organization.name.clone(),
+                    place_name: place.name.clone(),
+                    checkin_datetime: checkin.start_timestamp,
+                })
+                .collect(),
+        )
+        .await;
 
     let new_infection: Infection =
         infection::get_with_organization(&connector, &infection_id)?.into();

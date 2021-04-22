@@ -3,13 +3,13 @@ pub mod template;
 use lettre::message::{header, Mailbox, MultiPart, SinglePart};
 use lettre::transport::smtp::authentication::Credentials;
 use lettre::transport::smtp::extension::ClientId;
-use lettre::{Address, Message, SmtpTransport, Transport};
+use lettre::{Address, AsyncSmtpTransport, AsyncTransport, Message, Tokio1Executor};
 use std::{env, str::FromStr};
 use template::{EmailData, TemplateStorage};
 use tracing::error;
 
 pub struct Connector {
-    smtp_transport: SmtpTransport,
+    smtp_transport: AsyncSmtpTransport<Tokio1Executor>,
     smtp_domain: String,
     from: Mailbox,
     template_storage: TemplateStorage,
@@ -17,7 +17,7 @@ pub struct Connector {
 
 impl Connector {
     // Use EmailData to instanciate an email
-    pub fn send(&self, data: Vec<impl EmailData>) {
+    pub async fn send(&self, data: Vec<impl EmailData>) {
         for data in data.iter() {
             match data.compile_with(&self.template_storage) {
                 Ok(email) => {
@@ -63,7 +63,7 @@ impl Connector {
                         );
 
                     match message {
-                        Ok(message) => match self.smtp_transport.send(&message) {
+                        Ok(message) => match self.smtp_transport.send(message).await {
                             Ok(_) => (),
                             Err(error) => error!("Error while sending email: {}", error),
                         },
@@ -79,7 +79,7 @@ impl Connector {
 
 #[derive(Clone)]
 pub struct ConnectorBuilder {
-    smtp_transport: SmtpTransport,
+    smtp_transport: AsyncSmtpTransport<Tokio1Executor>,
     smtp_domain: String,
     from: Mailbox,
     template_storage: TemplateStorage,
@@ -100,7 +100,7 @@ impl ConnectorBuilder {
         let from = Mailbox::new(Some(from_name), from_address);
 
         // Prepare SMTP client
-        let smtp_transport = SmtpTransport::starttls_relay(&smtp_domain)
+        let smtp_transport = AsyncSmtpTransport::<Tokio1Executor>::starttls_relay(&smtp_domain)
             .expect("Unable to create SMTP relay")
             .hello_name(ClientId::Domain(smtp_domain.clone()))
             .credentials(Credentials::new(smtp_login, smtp_password))

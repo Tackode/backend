@@ -5,7 +5,7 @@ use crate::model::session;
 use crate::security::{generate_token, hash};
 use uuid::Uuid;
 
-pub fn create_session(
+pub async fn create_session(
     connector: &Connector,
     user_id: Uuid,
     email_address: String,
@@ -33,13 +33,16 @@ pub fn create_session(
     };
 
     // Send validation URL
-    connector.email.send(vec![DeviceValidationEmail {
-        to: email_address,
-        url: format!(
-            "/validate-session/?sessionId={}&token={}&{}",
-            session.id, token, redirect
-        ),
-    }]);
+    connector
+        .email
+        .send(vec![DeviceValidationEmail {
+            to: email_address,
+            url: format!(
+                "/validate-session/?sessionId={}&token={}&{}",
+                session.id, token, redirect
+            ),
+        }])
+        .await;
 
     Ok(session)
 }

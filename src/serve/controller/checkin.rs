@@ -91,7 +91,8 @@ async fn create(
                 RedirectPage::CheckinConfirmation {
                     place_id: data.place_id,
                 },
-            )?;
+            )
+            .await?;
 
             (user, session)
         }

@@ -142,7 +142,8 @@ async fn login(
     };
 
     // Create session with confirmation token
-    let session = create_session(&connector, user.id, data.email, user_agent, redirect_page)?;
+    let session =
+        create_session(&connector, user.id, data.email, user_agent, redirect_page).await?;
 
     // Return session_id
     Ok(warp::reply::json(&session))
