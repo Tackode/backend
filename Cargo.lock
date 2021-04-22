@@ -581,7 +581,6 @@ dependencies = [
  "nom",
  "once_cell",
  "quoted_printable",
- "r2d2",
  "rand",
  "regex",
  "rustls",
