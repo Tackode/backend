@@ -1,8 +1,10 @@
-use sha3::{Digest, Sha3_512};
 use rand::prelude::*;
+use sha3::{Digest, Sha3_512};
 
 pub fn hash(value: String) -> String {
-    let hash = Sha3_512::new().chain(value.into_bytes().as_slice()).finalize();
+    let hash = Sha3_512::new()
+        .chain(value.into_bytes().as_slice())
+        .finalize();
     hex::encode(hash)
 }
 

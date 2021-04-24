@@ -101,6 +101,11 @@ async fn create(
             name: data.name,
             description: data.description,
             average_duration: data.average_duration,
+            maximum_gauge: data.maximum_gauge,
+            address: data.address,
+            latitude: data.latitude,
+            longitude: data.longitude,
+            maximum_duration: data.maximum_duration,
         },
     )?;
 
@@ -134,6 +139,11 @@ async fn update(
             name: data.name,
             description: data.description,
             average_duration: data.average_duration,
+            maximum_gauge: data.maximum_gauge,
+            address: data.address,
+            latitude: data.latitude,
+            longitude: data.longitude,
+            maximum_duration: data.maximum_duration,
         },
     )?;
 

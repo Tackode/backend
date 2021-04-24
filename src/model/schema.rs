@@ -6,7 +6,7 @@ table! {
         user_id -> Uuid,
         start_timestamp -> Timestamptz,
         end_timestamp -> Timestamptz,
-        duration -> Int8,
+        duration -> Int4,
         potential_infection -> Bool,
         confirmed -> Bool,
         created_at -> Timestamptz,
@@ -44,10 +44,16 @@ table! {
         organization_id -> Uuid,
         name -> Text,
         description -> Nullable<Text>,
-        average_duration -> Int8,
+        average_duration -> Int4,
         disabled -> Bool,
         created_at -> Timestamptz,
         updated_at -> Timestamptz,
+        maximum_gauge -> Nullable<Int4>,
+        current_gauge -> Int4,
+        address -> Nullable<Text>,
+        latitude -> Nullable<Float8>,
+        longitude -> Nullable<Float8>,
+        maximum_duration -> Int4,
     }
 }
 
@@ -86,4 +92,11 @@ joinable!(organization -> user (user_id));
 joinable!(place -> organization (organization_id));
 joinable!(session -> user (user_id));
 
-allow_tables_to_appear_in_same_query!(checkin, infection, organization, place, session, user,);
+allow_tables_to_appear_in_same_query!(
+    checkin,
+    infection,
+    organization,
+    place,
+    session,
+    user,
+);

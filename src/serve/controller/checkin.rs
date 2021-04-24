@@ -106,7 +106,7 @@ async fn create(
             session_id: session.id,
             user_id: user.id,
             start_timestamp: Utc::now(),
-            end_timestamp: Utc::now() + Duration::minutes(data.duration),
+            end_timestamp: Utc::now() + Duration::minutes(data.duration.into()),
             duration: data.duration,
             confirmed: session.confirmed,
         },

@@ -8,10 +8,16 @@ pub struct Place {
     pub organization_id: Uuid,
     pub name: String,
     pub description: Option<String>,
-    pub average_duration: i64,
+    pub average_duration: i32,
     pub disabled: bool,
     pub updated_at: DateTime<Utc>,
     pub created_at: DateTime<Utc>,
+    pub maximum_gauge: Option<i32>,
+    pub current_gauge: i32,
+    pub address: Option<String>,
+    pub latitude: Option<f64>,
+    pub longitude: Option<f64>,
+    pub maximum_duration: i32,
 }
 
 #[derive(Insertable)]
@@ -20,7 +26,12 @@ pub struct PlaceInsert {
     pub organization_id: Uuid,
     pub name: String,
     pub description: Option<String>,
-    pub average_duration: i64,
+    pub average_duration: i32,
+    pub maximum_gauge: Option<i32>,
+    pub address: Option<String>,
+    pub latitude: Option<f64>,
+    pub longitude: Option<f64>,
+    pub maximum_duration: i32,
 }
 
 #[derive(AsChangeset)]
@@ -29,5 +40,10 @@ pub struct PlaceInsert {
 pub struct PlaceUpdate {
     pub name: String,
     pub description: Option<String>,
-    pub average_duration: i64,
+    pub average_duration: i32,
+    pub maximum_gauge: Option<i32>,
+    pub address: Option<String>,
+    pub latitude: Option<f64>,
+    pub longitude: Option<f64>,
+    pub maximum_duration: i32,
 }

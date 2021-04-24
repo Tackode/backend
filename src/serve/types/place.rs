@@ -12,7 +12,11 @@ pub struct Place {
     pub name: String,
     pub description: Option<String>,
     /// Average duration in minutes
-    pub average_duration: i64,
+    pub average_duration: i32,
+    pub maximum_gauge: Option<i32>,
+    pub address: Option<String>,
+    pub location: Option<(f64, f64)>,
+    pub maximum_duration: i32,
 }
 
 #[derive(Deserialize, Validate)]
@@ -23,8 +27,18 @@ pub struct PlaceForm {
     #[validate(length(max = 1000))]
     pub description: Option<String>,
     /// Average duration in minutes
-    #[validate(range(min = 1, max = 480))]
-    pub average_duration: i64,
+    #[validate(range(min = 1, max = 1440))]
+    pub average_duration: i32,
+    #[validate(range(min = 1))]
+    pub maximum_gauge: Option<i32>,
+    #[validate(length(max = 1000))]
+    pub address: Option<String>,
+    #[validate(range(min = -90, max = 90))]
+    pub latitude: Option<f64>,
+    #[validate(range(min = -180, max = 180))]
+    pub longitude: Option<f64>,
+    #[validate(range(min = 1, max = 1440))]
+    pub maximum_duration: i32,
 }
 
 impl From<(PlaceModel, OrganizationModel)> for Place {
@@ -35,6 +49,13 @@ impl From<(PlaceModel, OrganizationModel)> for Place {
             name: place.name,
             description: place.description,
             average_duration: place.average_duration,
+            maximum_gauge: place.maximum_gauge,
+            address: place.address,
+            location: match (place.latitude, place.longitude) {
+                (Some(latitude), Some(longitude)) => Some((latitude, longitude)),
+                _ => None,
+            },
+            maximum_duration: place.maximum_duration,
         }
     }
 }
