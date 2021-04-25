@@ -13,7 +13,6 @@ pub struct Place {
     pub updated_at: DateTime<Utc>,
     pub created_at: DateTime<Utc>,
     pub maximum_gauge: Option<i32>,
-    pub current_gauge: i32,
     pub address: Option<String>,
     pub latitude: Option<f64>,
     pub longitude: Option<f64>,

@@ -11,6 +11,7 @@ table! {
         confirmed -> Bool,
         created_at -> Timestamptz,
         updated_at -> Timestamptz,
+        number -> Int4,
     }
 }
 
@@ -49,7 +50,6 @@ table! {
         created_at -> Timestamptz,
         updated_at -> Timestamptz,
         maximum_gauge -> Nullable<Int4>,
-        current_gauge -> Int4,
         address -> Nullable<Text>,
         latitude -> Nullable<Float8>,
         longitude -> Nullable<Float8>,

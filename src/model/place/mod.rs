@@ -2,8 +2,9 @@ mod common;
 
 use super::error::{is_one, Error};
 use super::organization::Organization;
-use super::schema::{organization, place::dsl};
+use super::schema::{checkin, organization, place::dsl};
 use crate::connector::Connector;
+use chrono::Utc;
 use diesel::prelude::*;
 use uuid::Uuid;
 
@@ -15,6 +16,22 @@ pub fn get(connector: &Connector, id: &Uuid) -> Result<Place, Error> {
     dsl::place
         .filter(dsl::id.eq(id).and(dsl::disabled.eq(false)))
         .first::<Place>(&connection)
+        .map_err(|error| error.into())
+}
+
+pub fn get_current_gauge(connector: &Connector, id: &Uuid) -> Result<i64, Error> {
+    let connection = connector.local.pool.get()?;
+
+    checkin::dsl::checkin
+        .select(diesel::dsl::sum(checkin::dsl::number))
+        .filter(
+            checkin::dsl::place_id
+                .eq(id)
+                .and(checkin::dsl::start_timestamp.le(Utc::now()))
+                .and(checkin::dsl::end_timestamp.ge(Utc::now())),
+        )
+        .first(&connection)
+        .map(|sum: Option<i64>| sum.unwrap_or_default())
         .map_err(|error| error.into())
 }
 

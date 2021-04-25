@@ -109,6 +109,7 @@ async fn create(
             end_timestamp: Utc::now() + Duration::minutes(data.duration.into()),
             duration: data.duration,
             confirmed: session.confirmed,
+            number: data.number,
         },
     )?;
 

@@ -16,6 +16,12 @@ pub fn routes(context: Context) -> BoxedFilter<(impl Reply,)> {
         .and(context_filter.clone())
         .and_then(get_one);
 
+    // GET /place/<id>/gauge -> Place
+    let get_place_gauge = warp::get()
+        .and(warp::path!("place" / Uuid / "gauge"))
+        .and(context_filter.clone())
+        .and_then(get_one_gauge);
+
     // GET /places -> Vec<Place>
     let get_places = warp::get()
         .and(warp::path!("places"))
@@ -49,6 +55,7 @@ pub fn routes(context: Context) -> BoxedFilter<(impl Reply,)> {
         .and_then(delete);
 
     get_place
+        .or(get_place_gauge)
         .or(get_places)
         .or(create_place)
         .or(set_place)
@@ -62,6 +69,17 @@ async fn get_one(place_id: Uuid, context: Context) -> Result<impl Reply, Rejecti
     let place: Place = place::get_with_organization(&connector, &place_id)?.into();
 
     Ok(warp::reply::json(&place))
+}
+
+async fn get_one_gauge(place_id: Uuid, context: Context) -> Result<impl Reply, Rejection> {
+    let connector = context.builders.create();
+
+    let gauge = place::get_current_gauge(&connector, &place_id)?.into();
+
+    Ok(warp::reply::json(&Gauge {
+        place_id,
+        value: gauge,
+    }))
 }
 
 async fn get_all(

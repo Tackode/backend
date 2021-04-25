@@ -14,6 +14,8 @@ pub struct CheckinForm {
     pub email: String,
     #[validate(range(min = 1, max = 480))]
     pub duration: i32,
+    #[validate(range(min = 1, max = 100))]
+    pub number: i32,
 }
 
 #[derive(Serialize)]

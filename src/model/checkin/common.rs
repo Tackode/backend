@@ -15,6 +15,7 @@ pub struct Checkin {
     pub confirmed: bool,
     pub updated_at: DateTime<Utc>,
     pub created_at: DateTime<Utc>,
+    pub number: i32,
 }
 
 #[derive(Insertable)]
@@ -27,4 +28,5 @@ pub struct CheckinInsert {
     pub end_timestamp: DateTime<Utc>,
     pub duration: i32,
     pub confirmed: bool,
+    pub number: i32,
 }

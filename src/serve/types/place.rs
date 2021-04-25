@@ -19,6 +19,13 @@ pub struct Place {
     pub maximum_duration: i32,
 }
 
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Gauge {
+    pub place_id: Uuid,
+    pub value: i64,
+}
+
 #[derive(Deserialize, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct PlaceForm {
