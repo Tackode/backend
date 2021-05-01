@@ -4,6 +4,7 @@ use super::super::session::{create_session, get_auth_from_email};
 use super::super::types::*;
 use crate::model::{checkin, place, user};
 use chrono::{Duration, Utc};
+use uuid::Uuid;
 use validator::Validate;
 use warp::{filters::BoxedFilter, Filter, Rejection, Reply};
 
@@ -26,6 +27,13 @@ pub fn routes(context: Context) -> BoxedFilter<(impl Reply,)> {
         .and(context_filter.clone())
         .and_then(create);
 
+    // POST /checkin/:uuid/leave -> 200
+    let leave = warp::post()
+        .and(warp::path!("checkin" / Uuid / "leave"))
+        .and(public_user_filter(context.clone()))
+        .and(context_filter.clone())
+        .and_then(leave);
+
     // GET /checkins -> Checkin(Place)
     let get_checkins = warp::get()
         .and(warp::path!("checkins"))
@@ -40,7 +48,11 @@ pub fn routes(context: Context) -> BoxedFilter<(impl Reply,)> {
         .and(context_filter.clone())
         .and_then(delete_all);
 
-    checkin.or(get_checkins).or(delete_checkins).boxed()
+    checkin
+        .or(leave)
+        .or(get_checkins)
+        .or(delete_checkins)
+        .boxed()
 }
 
 async fn create(
@@ -115,6 +127,24 @@ async fn create(
 
     // Return session_id
     Ok(warp::reply::json(&session))
+}
+
+async fn leave(
+    checkin_id: Uuid,
+    public: PublicUser,
+    context: Context,
+) -> Result<impl Reply, Rejection> {
+    // Prepare connector
+    let connector = context.builder.create();
+
+    // End checkin
+    checkin::leave(&connector, &public.user.id, &checkin_id)?;
+
+    // Get checkin
+    let checkin: Checkin = checkin::get(&connector, &checkin_id)?.into();
+
+    // Return checkin
+    Ok(warp::reply::json(&checkin))
 }
 
 async fn get_all(public: PublicUser, context: Context) -> Result<impl Reply, Rejection> {

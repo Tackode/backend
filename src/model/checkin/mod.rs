@@ -27,6 +27,19 @@ pub fn get_all_with_user(
         .map_err(|error| error.into())
 }
 
+pub fn get(
+    connector: &Connector,
+    checkin_id: &Uuid,
+) -> Result<(Checkin, (Place, Organization)), Error> {
+    let connection = connector.local.pool.get()?;
+
+    dsl::checkin
+        .inner_join(place::dsl::place.inner_join(organization::dsl::organization))
+        .filter(dsl::id.eq(checkin_id))
+        .first::<(Checkin, (Place, Organization))>(&connection)
+        .map_err(|error| error.into())
+}
+
 pub fn delete_all_with_user(connector: &Connector, user_id: &Uuid) -> Result<(), Error> {
     let connection = connector.local.pool.get()?;
 
@@ -52,6 +65,23 @@ pub fn confirm(connector: &Connector, session_id: &Uuid) -> Result<(), Error> {
 
     diesel::update(dsl::checkin.filter(dsl::session_id.eq(session_id)))
         .set(dsl::confirmed.eq(true))
+        .execute(&connection)
+        .map(|_| ())
+        .map_err(|error| error.into())
+}
+
+pub fn leave(connector: &Connector, user_id: &Uuid, checkin_id: &Uuid) -> Result<(), Error> {
+    let connection = connector.local.pool.get()?;
+
+    let checkin = dsl::checkin
+        .filter(dsl::id.eq(checkin_id))
+        .first::<Checkin>(&connection)?;
+
+    let now = Utc::now();
+    let duration = (now - checkin.start_timestamp).num_minutes();
+
+    diesel::update(dsl::checkin.filter(dsl::user_id.eq(user_id).and(dsl::id.eq(checkin_id))))
+        .set((dsl::end_timestamp.eq(now), dsl::duration.eq(duration)))
         .execute(&connection)
         .map(|_| ())
         .map_err(|error| error.into())
