@@ -32,7 +32,7 @@ async fn update(
         }));
     }
 
-    let connector = context.builders.create();
+    let connector = context.builder.create();
 
     organization::set_name(&connector, &professional.organization.id, &data.name)?;
 

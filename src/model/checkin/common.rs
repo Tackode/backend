@@ -10,11 +10,12 @@ pub struct Checkin {
     pub user_id: Uuid,
     pub start_timestamp: DateTime<Utc>,
     pub end_timestamp: DateTime<Utc>,
-    pub duration: i32,
+    pub duration: i64,
     pub potential_infection: bool,
     pub confirmed: bool,
     pub updated_at: DateTime<Utc>,
     pub created_at: DateTime<Utc>,
+    pub number: i64,
 }
 
 #[derive(Insertable)]
@@ -25,6 +26,7 @@ pub struct CheckinInsert {
     pub user_id: Uuid,
     pub start_timestamp: DateTime<Utc>,
     pub end_timestamp: DateTime<Utc>,
-    pub duration: i32,
+    pub duration: i64,
     pub confirmed: bool,
+    pub number: i64,
 }

@@ -18,6 +18,22 @@ pub fn get(connector: &Connector, id: &Uuid) -> Result<Place, Error> {
         .map_err(|error| error.into())
 }
 
+pub fn refresh_all_gauges(connector: &Connector) -> Result<usize, Error> {
+    let connection = connector.local.pool.get()?;
+
+    diesel::sql_query(
+        "UPDATE place
+        SET current_gauge = checkin.active_count
+        FROM (SELECT place_id, SUM(number) as active_count
+            FROM checkin
+            WHERE start_timestamp <= NOW() AND end_timestamp >= NOW()
+            GROUP BY place_id) as checkin
+        WHERE checkin.place_id = place.id",
+    )
+    .execute(&connection)
+    .map_err(|error| error.into())
+}
+
 pub fn get_with_organization(
     connector: &Connector,
     id: &Uuid,

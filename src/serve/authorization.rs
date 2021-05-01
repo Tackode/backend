@@ -62,7 +62,7 @@ where
         .and_then(
             |(header, context, get_user): (String, Context, F)| async move {
                 // Prepare connector
-                let connector = context.builders.create();
+                let connector = context.builder.create();
 
                 let user = decrypt_basic_header(header)
                     .and_then(|credentials| credentials_to_session(&connector, credentials))

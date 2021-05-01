@@ -25,7 +25,7 @@ pub fn routes(context: Context) -> BoxedFilter<(impl Reply,)> {
 }
 
 async fn get(public: PublicUser, context: Context) -> Result<impl Reply, Rejection> {
-    let connector = context.builders.create();
+    let connector = context.builder.create();
 
     let profile: Profile = user::get_with_organization(&connector, &public.user.id)?.into();
 
@@ -33,7 +33,7 @@ async fn get(public: PublicUser, context: Context) -> Result<impl Reply, Rejecti
 }
 
 async fn delete(public: PublicUser, context: Context) -> Result<impl Reply, Rejection> {
-    user::delete(&context.builders.create(), &public.user.id)?;
+    user::delete(&context.builder.create(), &public.user.id)?;
 
     Ok(warp::reply())
 }

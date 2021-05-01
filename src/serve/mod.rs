@@ -11,7 +11,7 @@ use tracing::info;
 use types::Context;
 use warp::{http::header, http::Method, Filter};
 
-pub async fn run(builders: ConnectorBuilder) {
+pub async fn run(builder: ConnectorBuilder) {
     let environment = env::var("BACKEND_ENV").expect("Missing BACKEND_ENV");
 
     let addr: SocketAddr = env::var("LISTEN")
@@ -20,7 +20,7 @@ pub async fn run(builders: ConnectorBuilder) {
         .expect("Invalid LISTEN");
 
     // Prepare Context
-    let context = Context { builders };
+    let context = Context { builder };
 
     // CORS
     let mut cors = warp::cors()
