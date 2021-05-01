@@ -57,7 +57,7 @@ async fn create(
     }
 
     // Prepare connector
-    let connector = context.builders.create();
+    let connector = context.builder.create();
 
     // Check if place exists
     place::get(&connector, &data.place_id)?;
@@ -118,7 +118,7 @@ async fn create(
 }
 
 async fn get_all(public: PublicUser, context: Context) -> Result<impl Reply, Rejection> {
-    let connector = context.builders.create();
+    let connector = context.builder.create();
 
     let checkins: Vec<Checkin> = checkin::get_all_with_user(&connector, &public.user.id)?
         .into_iter()
@@ -129,7 +129,7 @@ async fn get_all(public: PublicUser, context: Context) -> Result<impl Reply, Rej
 }
 
 async fn delete_all(public: PublicUser, context: Context) -> Result<impl Reply, Rejection> {
-    let connector = context.builders.create();
+    let connector = context.builder.create();
 
     checkin::delete_all_with_user(&connector, &public.user.id)?;
 

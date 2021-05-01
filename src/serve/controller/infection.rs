@@ -42,7 +42,7 @@ async fn create(
         return Err(warp::reject::custom(Error::InvalidData));
     }
 
-    let connector = context.builders.create();
+    let connector = context.builder.create();
 
     place::validate_places_owned(&connector, &professional.organization.id, &data.places_ids)?;
 
@@ -90,7 +90,7 @@ async fn get_all(
     professional: ProfessionalUser,
     context: Context,
 ) -> Result<impl Reply, Rejection> {
-    let connector = context.builders.create();
+    let connector = context.builder.create();
 
     let infections: Vec<Infection> =
         infection::get_all_with_organization(&connector, &professional.organization.id)?

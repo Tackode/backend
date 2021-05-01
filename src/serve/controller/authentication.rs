@@ -52,7 +52,7 @@ async fn validate(
     }
 
     // Prepare connector
-    let connector = context.builders.create();
+    let connector = context.builder.create();
 
     // Hash token
     let hashed_confirmation_token = hash(data.confirmation_token);
@@ -93,7 +93,7 @@ async fn login(
     }
 
     // Prepare connector
-    let connector = context.builders.create();
+    let connector = context.builder.create();
 
     // Get login
     let (login, cleaned_email) = get_auth_from_email(data.email.clone());
@@ -150,7 +150,7 @@ async fn login(
 }
 
 async fn logout(public: PublicUser, context: Context) -> Result<impl Reply, Rejection> {
-    session::set_disabled(&context.builders.create(), &public.session.id, true)?;
+    session::set_disabled(&context.builder.create(), &public.session.id, true)?;
 
     Ok(warp::reply())
 }

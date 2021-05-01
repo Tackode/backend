@@ -2,9 +2,8 @@ mod common;
 
 use super::error::{is_one, Error};
 use super::organization::Organization;
-use super::schema::{checkin, organization, place::dsl};
+use super::schema::{organization, place::dsl};
 use crate::connector::Connector;
-use chrono::Utc;
 use diesel::prelude::*;
 use uuid::Uuid;
 
@@ -19,20 +18,20 @@ pub fn get(connector: &Connector, id: &Uuid) -> Result<Place, Error> {
         .map_err(|error| error.into())
 }
 
-pub fn get_current_gauge(connector: &Connector, id: &Uuid) -> Result<i64, Error> {
+pub fn refresh_all_gauges(connector: &Connector) -> Result<usize, Error> {
     let connection = connector.local.pool.get()?;
 
-    checkin::dsl::checkin
-        .select(diesel::dsl::sum(checkin::dsl::number))
-        .filter(
-            checkin::dsl::place_id
-                .eq(id)
-                .and(checkin::dsl::start_timestamp.le(Utc::now()))
-                .and(checkin::dsl::end_timestamp.ge(Utc::now())),
-        )
-        .first(&connection)
-        .map(|sum: Option<i64>| sum.unwrap_or_default())
-        .map_err(|error| error.into())
+    diesel::sql_query(
+        "UPDATE place
+        SET current_gauge = checkin.active_count
+        FROM (SELECT place_id, SUM(number) as active_count
+            FROM checkin
+            WHERE start_timestamp <= NOW() AND end_timestamp >= NOW()
+            GROUP BY place_id) as checkin
+        WHERE checkin.place_id = place.id",
+    )
+    .execute(&connection)
+    .map_err(|error| error.into())
 }
 
 pub fn get_with_organization(

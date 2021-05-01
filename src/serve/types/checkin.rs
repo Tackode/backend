@@ -13,9 +13,9 @@ pub struct CheckinForm {
     #[validate(email)]
     pub email: String,
     #[validate(range(min = 1, max = 480))]
-    pub duration: i32,
+    pub duration: i64,
     #[validate(range(min = 1, max = 100))]
-    pub number: i32,
+    pub number: i64,
 }
 
 #[derive(Serialize)]
@@ -24,7 +24,7 @@ pub struct Checkin {
     pub id: Uuid,
     pub start_timestamp: DateTime<Utc>,
     pub end_timestamp: DateTime<Utc>,
-    pub duration: i32,
+    pub duration: i64,
     pub potential_infection: bool,
     pub place: Place,
 }
