@@ -15,6 +15,7 @@ mod connector;
 mod model;
 mod security;
 mod serve;
+mod types;
 
 use connector::ConnectorBuilder;
 use dotenv::dotenv;

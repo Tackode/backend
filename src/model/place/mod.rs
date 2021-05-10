@@ -4,7 +4,10 @@ use super::error::{is_one, Error};
 use super::organization::Organization;
 use super::schema::{organization, place::dsl};
 use crate::connector::Connector;
+use crate::types::{Pagination, PaginationQuery};
 use diesel::prelude::*;
+use postgis::ewkb::Point;
+use postgis_diesel::*;
 use uuid::Uuid;
 
 pub use common::*;
@@ -63,6 +66,77 @@ pub fn get_all_with_organization(
         .order(dsl::created_at.desc())
         .load::<(Place, Organization)>(&connection)
         .map_err(|error| error.into())
+}
+
+pub fn search(
+    connector: &Connector,
+    location: PointC<Point>,
+    radius_in_meters: i64,
+    pagination: PaginationQuery,
+) -> Result<(Pagination, Vec<PlaceSearchResult>), Error> {
+    let connection = connector.local.pool.get()?;
+
+    let query = format!(
+        "
+        WITH c AS (
+            SELECT ST_SetSRID(ST_MakePoint({}, {}), 4326)::geography AS center
+        )
+        SELECT place.id,
+            place.organization_id,
+            place.name,
+            place.description,
+            place.average_duration,
+            place.disabled,
+            place.created_at,
+            place.updated_at,
+            place.maximum_gauge,
+            place.address,
+            place.maximum_duration,
+            place.current_gauge,
+            place.location,
+            organization.id AS org_id,
+            organization.user_id AS org_user_id,
+            organization.name AS org_name,
+            organization.confirmed AS org_confirmed,
+            organization.disabled AS org_disabled,
+            organization.updated_at AS org_updated_at,
+            organization.created_at AS org_created_at,
+            ST_Distance(place.location, c.center, false) AS meter_distance
+        FROM place
+        JOIN c ON TRUE
+        INNER JOIN organization
+        ON place.organization_id = organization.id
+        WHERE ST_DWithin(
+            place.location,
+            center,
+            {},
+            false
+        )
+        ORDER BY meter_distance ASC
+        LIMIT {} OFFSET {}",
+        location.v.x,
+        location.v.y,
+        radius_in_meters,
+        pagination.limit + 1,
+        (pagination.page - 1) * pagination.limit
+    );
+
+    let mut places = diesel::sql_query(query).load::<PlaceSearchRow>(&connection)?;
+
+    let next_page = if places.len() == pagination.limit + 1 {
+        places.remove(places.len() - 1);
+        Some(pagination.page + 1)
+    } else {
+        None
+    };
+
+    Ok((
+        Pagination {
+            page: pagination.page,
+            next_page,
+        },
+        places.into_iter().map(|place| place.into()).collect(),
+    ))
 }
 
 pub fn validate_places_owned(

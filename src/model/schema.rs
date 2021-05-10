@@ -1,4 +1,9 @@
+#![allow(unused_imports)]
+
 table! {
+    use diesel::sql_types::*;
+    use postgis_diesel::sql_types::*;
+
     checkin (id) {
         id -> Uuid,
         place_id -> Uuid,
@@ -16,6 +21,9 @@ table! {
 }
 
 table! {
+    use diesel::sql_types::*;
+    use postgis_diesel::sql_types::*;
+
     infection (id) {
         id -> Uuid,
         organization_id -> Uuid,
@@ -28,6 +36,9 @@ table! {
 }
 
 table! {
+    use diesel::sql_types::*;
+    use postgis_diesel::sql_types::*;
+
     organization (id) {
         id -> Uuid,
         user_id -> Uuid,
@@ -40,6 +51,9 @@ table! {
 }
 
 table! {
+    use diesel::sql_types::*;
+    use postgis_diesel::sql_types::*;
+
     place (id) {
         id -> Uuid,
         organization_id -> Uuid,
@@ -51,14 +65,16 @@ table! {
         updated_at -> Timestamptz,
         maximum_gauge -> Nullable<Int8>,
         address -> Nullable<Text>,
-        latitude -> Nullable<Float8>,
-        longitude -> Nullable<Float8>,
         maximum_duration -> Int8,
         current_gauge -> Int8,
+        location -> Nullable<Geometry>,
     }
 }
 
 table! {
+    use diesel::sql_types::*;
+    use postgis_diesel::sql_types::*;
+
     session (id) {
         id -> Uuid,
         user_id -> Uuid,
@@ -73,6 +89,9 @@ table! {
 }
 
 table! {
+    use diesel::sql_types::*;
+    use postgis_diesel::sql_types::*;
+
     user (id) {
         id -> Uuid,
         login -> Text,

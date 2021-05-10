@@ -1,5 +1,6 @@
 use super::super::authorization::professional_user_filter;
 use super::super::error::Error;
+use super::super::query::query_qs;
 use super::super::types::*;
 use crate::model::place;
 use uuid::Uuid;
@@ -22,6 +23,13 @@ pub fn routes(context: Context) -> BoxedFilter<(impl Reply,)> {
         .and(professional_user_filter(context.clone()))
         .and(context_filter.clone())
         .and_then(get_all);
+
+    // GET /places/search?latitude=1&longitude=1&page=1 -> PaginatedResults<Place>
+    let search_places = warp::get()
+        .and(warp::path!("places" / "search"))
+        .and(query_qs())
+        .and(context_filter.clone())
+        .and_then(search);
 
     // POST /place/<id> -> Place
     let create_place = warp::post()
@@ -50,6 +58,7 @@ pub fn routes(context: Context) -> BoxedFilter<(impl Reply,)> {
 
     get_place
         .or(get_places)
+        .or(search_places)
         .or(create_place)
         .or(set_place)
         .or(delete_place)
@@ -79,6 +88,23 @@ async fn get_all(
     Ok(warp::reply::json(&places))
 }
 
+async fn search(query: PlaceSearchQuery, context: Context) -> Result<impl Reply, Rejection> {
+    let connector = context.builder.create();
+
+    let (pagination, places) = place::search(
+        &connector,
+        query.location.into(),
+        query.radius,
+        query.pagination.into(),
+    )?;
+    let results = PlacesSearchResults {
+        pagination,
+        places: places.into_iter().map(|p| p.into()).collect(),
+    };
+
+    Ok(warp::reply::json(&results))
+}
+
 async fn create(
     professional: ProfessionalUser,
     data: PlaceForm,
@@ -103,9 +129,8 @@ async fn create(
             average_duration: data.average_duration,
             maximum_gauge: data.maximum_gauge,
             address: data.address,
-            latitude: data.latitude,
-            longitude: data.longitude,
             maximum_duration: data.maximum_duration,
+            location: data.location.map(|location| location.into()),
         },
     )?;
 
@@ -141,9 +166,8 @@ async fn update(
             average_duration: data.average_duration,
             maximum_gauge: data.maximum_gauge,
             address: data.address,
-            latitude: data.latitude,
-            longitude: data.longitude,
             maximum_duration: data.maximum_duration,
+            location: data.location.map(|location| location.into()),
         },
     )?;
 

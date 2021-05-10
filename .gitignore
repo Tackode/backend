@@ -2,6 +2,9 @@
 /target
 **/*.rs.bk
 
+# Diesel
+src/model/schema.rs.orig
+
 # Build
 /dist/backend
 

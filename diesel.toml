@@ -3,3 +3,6 @@
 
 [print_schema]
 file = "src/model/schema.rs"
+patch_file = "src/model/schema.patch"
+import_types = ["diesel::sql_types::*", "postgis_diesel::sql_types::*"]
+filter = { except_tables = ["spatial_ref_sys"] }

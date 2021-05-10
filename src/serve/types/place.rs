@@ -1,6 +1,7 @@
 use super::Organization;
 use crate::model::organization::Organization as OrganizationModel;
-use crate::model::place::Place as PlaceModel;
+use crate::model::place::{Place as PlaceModel, PlaceSearchResult as PlaceSearchResultModel};
+use crate::types::{Location, Pagination, PaginationQuery};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -15,9 +16,32 @@ pub struct Place {
     pub average_duration: i64,
     pub maximum_gauge: Option<i64>,
     pub address: Option<String>,
-    pub location: Option<(f64, f64)>,
+    pub location: Option<Location>,
     pub maximum_duration: i64,
     pub current_gauge: i64,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PlaceSearchResult {
+    pub meter_distance: f64,
+    pub place: Place,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PlacesSearchResults {
+    pub places: Vec<PlaceSearchResult>,
+    pub pagination: Pagination,
+}
+
+#[derive(Deserialize, Validate)]
+#[serde(rename_all = "camelCase")]
+pub struct PlaceSearchQuery {
+    pub location: Location,
+    #[validate(range(min = 1, max = 1000000))]
+    pub radius: i64,
+    pub pagination: PaginationQuery,
 }
 
 #[derive(Deserialize, Validate)]
@@ -34,10 +58,7 @@ pub struct PlaceForm {
     pub maximum_gauge: Option<i64>,
     #[validate(length(max = 1000))]
     pub address: Option<String>,
-    #[validate(range(min = -90, max = 90))]
-    pub latitude: Option<f64>,
-    #[validate(range(min = -180, max = 180))]
-    pub longitude: Option<f64>,
+    pub location: Option<Location>,
     #[validate(range(min = 1, max = 1440))]
     pub maximum_duration: i64,
 }
@@ -52,12 +73,18 @@ impl From<(PlaceModel, OrganizationModel)> for Place {
             average_duration: place.average_duration,
             maximum_gauge: place.maximum_gauge,
             address: place.address,
-            location: match (place.latitude, place.longitude) {
-                (Some(latitude), Some(longitude)) => Some((latitude, longitude)),
-                _ => None,
-            },
+            location: place.location.map(|point| point.into()),
             maximum_duration: place.maximum_duration,
             current_gauge: place.current_gauge,
+        }
+    }
+}
+
+impl From<PlaceSearchResultModel> for PlaceSearchResult {
+    fn from(search_result: PlaceSearchResultModel) -> Self {
+        PlaceSearchResult {
+            meter_distance: search_result.meter_distance,
+            place: (search_result.place, search_result.organization).into(),
         }
     }
 }

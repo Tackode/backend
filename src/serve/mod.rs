@@ -1,6 +1,7 @@
 mod authorization;
 mod controller;
 mod error;
+mod query;
 mod session;
 mod types;
 
