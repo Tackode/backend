@@ -76,7 +76,7 @@ jobs:
 
       - name: Set up QEMU
         if: github.event_name != 'pull_request'
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v1.1.0
 
       - name: Set up Docker Buildx
         if: github.event_name != 'pull_request'
