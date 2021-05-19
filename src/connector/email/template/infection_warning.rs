@@ -4,7 +4,6 @@ use super::{
 };
 use chrono::{DateTime, Utc};
 use chrono_tz::Europe::Paris;
-use lettre::message::mime;
 use std::collections::HashMap;
 
 pub struct InfectionWarningEmail {
@@ -53,7 +52,10 @@ impl InfectionWarningTemplate {
                 name: "infectionWarning",
                 subject: "⚠️ Contact potentiel avec une personne infectée",
                 utf8_subject: true,
-                embeds: vec![("../assets/logo.png", mime::IMAGE_PNG)],
+                embeds: vec![(
+                    "../assets/logo.png",
+                    "image/png".parse().expect("Unable to parse ContentType"),
+                )],
             }),
         }
     }

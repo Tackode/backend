@@ -3,7 +3,7 @@ mod infection_warning;
 mod storage;
 
 use custom_error::custom_error;
-use lettre::message::mime::Mime;
+use lettre::message::header::ContentType;
 use lettre::{address::AddressError, Address};
 use rust_embed::RustEmbed;
 use std::collections::HashMap;
@@ -34,7 +34,7 @@ pub struct TemplateData {
     pub name: &'static str,
     pub subject: &'static str,
     pub utf8_subject: bool,
-    pub embeds: Vec<(&'static str, Mime)>,
+    pub embeds: Vec<(&'static str, ContentType)>,
 }
 
 #[derive(Clone)]
@@ -51,7 +51,7 @@ pub struct PrecompiledTemplate {
 pub struct Embed {
     pub body: Vec<u8>,
     pub filename: String,
-    pub content_type: Mime,
+    pub content_type: ContentType,
     pub content_id: String,
 }
 
@@ -163,7 +163,7 @@ fn text(filename: String) -> Option<String> {
 fn embed_in_template(
     template: String,
     filepath: &str,
-    content_type: Mime,
+    content_type: ContentType,
 ) -> Option<(String, Embed)> {
     get_embed_filepath(filepath)
         .and_then(|embed_filepath| {

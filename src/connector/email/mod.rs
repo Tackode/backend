@@ -1,6 +1,6 @@
 pub mod template;
 
-use lettre::message::{header, Mailbox, MultiPart, SinglePart};
+use lettre::message::{Attachment, Mailbox, MultiPart, SinglePart};
 use lettre::transport::smtp::authentication::Credentials;
 use lettre::transport::smtp::extension::ClientId;
 use lettre::{Address, AsyncSmtpTransport, AsyncTransport, Message, Tokio1Executor};
@@ -21,44 +21,27 @@ impl Connector {
         for data in data.iter() {
             match data.compile_with(&self.template_storage) {
                 Ok(email) => {
-                    let html_part = MultiPart::related().singlepart(
-                        SinglePart::builder()
-                            .header(header::ContentType(
-                                "text/html; charset=utf8".parse().unwrap(),
-                            ))
-                            .body(email.html.clone()),
-                    );
+                    let message_id = format!("<{}@{}>", uuid::Uuid::new_v4(), self.smtp_domain);
+
+                    let html_part =
+                        MultiPart::related().singlepart(SinglePart::html(email.html.clone()));
 
                     // Handle embeds
                     let html_part = email.embeds.iter().fold(html_part, |html_part, embed| {
                         html_part.singlepart(
-                            SinglePart::builder()
-                                .header(header::ContentType(embed.content_type.clone()))
-                                .header(header::ContentDisposition {
-                                    disposition: header::DispositionType::Inline,
-                                    parameters: vec![],
-                                })
-                                .header(header::ContentId(format!("<{}>", embed.content_id)))
-                                .body(embed.body.clone()),
+                            Attachment::new_inline(embed.content_id.clone())
+                                .body(embed.body.clone(), embed.content_type.clone()),
                         )
                     });
 
-                    let message_id = format!("<{}@{}>", uuid::Uuid::new_v4(), self.smtp_domain);
-
                     let message = Message::builder()
-                        .to(Mailbox::new(None, email.to))
                         .from(self.from.clone())
+                        .to(Mailbox::new(None, email.to))
                         .subject(email.subject.clone())
                         .message_id(Some(message_id))
                         .multipart(
                             MultiPart::alternative()
-                                .singlepart(
-                                    SinglePart::builder()
-                                        .header(header::ContentType(
-                                            "text/plain; charset=utf8".parse().unwrap(),
-                                        ))
-                                        .body(email.text),
-                                )
+                                .singlepart(SinglePart::plain(email.text))
                                 .multipart(html_part),
                         );
 

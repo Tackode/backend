@@ -2,7 +2,6 @@ use super::{
     precompile_template, EmailData, EmailTemplate, PrecompiledTemplate, TemplateData,
     TemplateStorage,
 };
-use lettre::message::mime;
 use std::collections::HashMap;
 
 pub struct DeviceValidationEmail {
@@ -39,7 +38,10 @@ impl DeviceValidationTemplate {
                 name: "deviceValidation",
                 subject: "Validation de la session",
                 utf8_subject: false,
-                embeds: vec![("../assets/logo.png", mime::IMAGE_PNG)],
+                embeds: vec![(
+                    "../assets/logo.png",
+                    "image/png".parse().expect("Unable to parse ContentType"),
+                )],
             }),
         }
     }
