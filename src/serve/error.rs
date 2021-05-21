@@ -11,6 +11,7 @@ custom_error! { pub Error
     InvalidDataWithDetails {source: ValidationErrors} = "Invalid data: {source}",
     Unauthorized = "Unauthorized",
     ModelError {source: crate::model::error::Error} = "[Model] {source}",
+    MaximumGaugeReached = "Gauge alert level reached, come back later",
 }
 
 impl reject::Reject for Error {}
@@ -48,6 +49,7 @@ pub async fn handle_rejection(err: Rejection) -> Result<impl Reply, Infallible> 
                     crate::model::error::Error::NotFound => StatusCode::NOT_FOUND,
                     _ => StatusCode::INTERNAL_SERVER_ERROR,
                 },
+                Error::MaximumGaugeReached => StatusCode::FORBIDDEN,
             },
             message: error.to_string(),
         };

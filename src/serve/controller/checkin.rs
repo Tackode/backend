@@ -72,7 +72,14 @@ async fn create(
     let connector = context.builder.create();
 
     // Check if place exists
-    place::get(&connector, &data.place_id)?;
+    let place = place::get(&connector, &data.place_id)?;
+
+    // Check if place is full
+    if let Some(maximum_gauge) = place.maximum_gauge {
+        if maximum_gauge < place.current_gauge + data.number {
+            return Err(warp::reject::custom(Error::MaximumGaugeReached));
+        }
+    }
 
     // Hash email to get login
     let (login, cleaned_email) = get_auth_from_email(data.email.clone());
