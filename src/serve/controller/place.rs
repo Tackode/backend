@@ -3,6 +3,7 @@ use super::super::error::Error;
 use super::super::query::query_qs;
 use super::super::types::*;
 use crate::model::place;
+use crate::model::types::GaugeLevel as GaugeLevelModel;
 use uuid::Uuid;
 use validator::Validate;
 use warp::{filters::BoxedFilter, Filter, Rejection, Reply};
@@ -115,10 +116,22 @@ async fn get_all(
 async fn search(query: PlaceSearchQuery, context: Context) -> Result<impl Reply, Rejection> {
     let connector = context.builder.create();
 
+    let gauge_levels = match query.maximum_gauge_level.unwrap_or(GaugeLevel::Alert) {
+        GaugeLevel::Safe => vec![GaugeLevelModel::Safe],
+        GaugeLevel::Warning => vec![GaugeLevelModel::Warning, GaugeLevelModel::Safe],
+        _ => vec![
+            GaugeLevelModel::Alert,
+            GaugeLevelModel::Warning,
+            GaugeLevelModel::Safe,
+            GaugeLevelModel::Unknown,
+        ],
+    };
+
     let (pagination, places) = place::search(
         &connector,
         query.location.into(),
         query.radius,
+        gauge_levels,
         query.pagination.into(),
     )?;
     let results = PlacesSearchResults {

@@ -38,7 +38,7 @@ pub struct OwnedPlace {
     pub current_gauge_level: GaugeLevel,
 }
 
-#[derive(Serialize)]
+#[derive(Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub enum GaugeLevel {
     Unknown,
@@ -67,6 +67,7 @@ pub struct PlaceSearchQuery {
     pub location: Location,
     #[validate(range(min = 1, max = 1000000))]
     pub radius: i64,
+    pub maximum_gauge_level: Option<GaugeLevel>,
     pub pagination: PaginationQuery,
 }
 

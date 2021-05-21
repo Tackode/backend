@@ -3,10 +3,11 @@ mod common;
 use super::error::{is_one, Error};
 use super::organization::Organization;
 use super::schema::{organization, place::dsl};
+use super::types::*;
 use crate::connector::Connector;
 use crate::types::{Pagination, PaginationQuery};
 use diesel::prelude::*;
-use diesel::sql_types::BigInt;
+use diesel::sql_types::*;
 use postgis::ewkb::Point;
 use postgis_diesel::*;
 use uuid::Uuid;
@@ -112,14 +113,15 @@ pub fn search(
     connector: &Connector,
     location: PointC<Point>,
     radius_in_meters: i64,
+    gauge_levels: Vec<GaugeLevel>,
     pagination: PaginationQuery,
 ) -> Result<(Pagination, Vec<PlaceSearchResult>), Error> {
     let connection = connector.local.pool.get()?;
 
-    let query = format!(
+    let mut places = diesel::sql_query(format!(
         "
         WITH c AS (
-            SELECT ST_SetSRID(ST_MakePoint({}, {}), 4326)::geography AS center
+            SELECT ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography AS center
         )
         SELECT place.id,
             place.organization_id,
@@ -148,24 +150,27 @@ pub fn search(
         JOIN c ON TRUE
         INNER JOIN organization
         ON place.organization_id = organization.id
-        WHERE disabled = FALSE AND ST_DWithin(
-            place.location,
-            center,
-            {},
-            false
-        )
+        WHERE
+            place.disabled = FALSE
+            AND current_gauge_level IN ({})
+            AND ST_DWithin(
+                place.location,
+                center,
+                $3,
+                false
+            )
         ORDER BY meter_distance ASC
-        LIMIT {} OFFSET {}",
-        location.v.x,
-        location.v.y,
-        radius_in_meters,
-        pagination.limit + 1,
-        (pagination.page - 1) * pagination.limit
-    );
+        LIMIT $4 OFFSET $5",
+        join_gauge_levels(gauge_levels)
+    ))
+    .bind::<Double, _>(location.v.x)
+    .bind::<Double, _>(location.v.y)
+    .bind::<BigInt, _>(radius_in_meters)
+    .bind::<BigInt, _>(pagination.limit + 1)
+    .bind::<BigInt, _>((pagination.page - 1) * pagination.limit)
+    .load::<PlaceSearchRow>(&connection)?;
 
-    let mut places = diesel::sql_query(query).load::<PlaceSearchRow>(&connection)?;
-
-    let next_page = if places.len() == pagination.limit + 1 {
+    let next_page = if places.len() as i64 == pagination.limit + 1 {
         places.remove(places.len() - 1);
         Some(pagination.page + 1)
     } else {
