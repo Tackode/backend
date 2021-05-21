@@ -6,4 +6,5 @@ pub mod infection;
 pub mod organization;
 pub mod place;
 pub mod session;
+pub mod types;
 pub mod user;

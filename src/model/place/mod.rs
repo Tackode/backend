@@ -6,6 +6,7 @@ use super::schema::{organization, place::dsl};
 use crate::connector::Connector;
 use crate::types::{Pagination, PaginationQuery};
 use diesel::prelude::*;
+use diesel::sql_types::BigInt;
 use postgis::ewkb::Point;
 use postgis_diesel::*;
 use uuid::Uuid;
@@ -24,17 +25,56 @@ pub fn get(connector: &Connector, id: &Uuid) -> Result<Place, Error> {
 pub fn refresh_all_gauges(connector: &Connector) -> Result<usize, Error> {
     let connection = connector.local.pool.get()?;
 
-    diesel::sql_query(
-        "UPDATE place
-        SET current_gauge = checkin.active_count
-        FROM (SELECT place_id, SUM(number) as active_count
-            FROM checkin
-            WHERE start_timestamp <= NOW() AND end_timestamp >= NOW()
-            GROUP BY place_id) as checkin
-        WHERE checkin.place_id = place.id",
-    )
-    .execute(&connection)
-    .map_err(|error| error.into())
+    connection
+        .transaction::<usize, Error, _>(|| {
+            let updated = diesel::sql_query(
+                "UPDATE place
+                SET current_gauge = checkin.active_count
+                FROM (SELECT place_id, SUM(number) as active_count
+                    FROM checkin
+                    WHERE start_timestamp <= NOW() AND end_timestamp >= NOW()
+                    GROUP BY place_id) as checkin
+                WHERE checkin.place_id = place.id AND disabled = FALSE",
+            )
+            .execute(&connection)?;
+
+            diesel::sql_query(
+                "UPDATE place
+                SET
+                    current_gauge_percent = NULL,
+                    current_gauge_level = 'unknown'
+                WHERE maximum_gauge IS NULL AND disabled = FALSE",
+            )
+            .execute(&connection)?;
+
+            diesel::sql_query(
+                "UPDATE place
+                SET
+                    current_gauge_percent = (current_gauge * 100) / maximum_gauge ,
+                    current_gauge_level = 'safe'
+                WHERE maximum_gauge IS NOT NULL AND disabled = FALSE",
+            )
+            .execute(&connection)?;
+
+            diesel::sql_query(
+                "UPDATE place
+                SET current_gauge_level = 'warning'
+                WHERE current_gauge_percent >= $1 AND disabled = FALSE",
+            )
+            .bind::<BigInt, _>(connector.configuration.gauge.warning)
+            .execute(&connection)?;
+
+            diesel::sql_query(
+                "UPDATE place
+                SET current_gauge_level = 'alert'
+                WHERE current_gauge_percent >= $1 AND disabled = FALSE",
+            )
+            .bind::<BigInt, _>(connector.configuration.gauge.alert)
+            .execute(&connection)?;
+
+            Ok(updated)
+        })
+        .map_err(|error| error.into())
 }
 
 pub fn get_with_organization(
@@ -94,6 +134,8 @@ pub fn search(
             place.maximum_duration,
             place.current_gauge,
             place.location,
+            place.current_gauge_level,
+            place.current_gauge_percent,
             organization.id AS org_id,
             organization.user_id AS org_user_id,
             organization.name AS org_name,
@@ -106,7 +148,7 @@ pub fn search(
         JOIN c ON TRUE
         INNER JOIN organization
         ON place.organization_id = organization.id
-        WHERE ST_DWithin(
+        WHERE disabled = FALSE AND ST_DWithin(
             place.location,
             center,
             {},

@@ -3,6 +3,7 @@
 table! {
     use diesel::sql_types::*;
     use postgis_diesel::sql_types::*;
+    use crate::model::types::*;
 
     checkin (id) {
         id -> Uuid,
@@ -23,6 +24,7 @@ table! {
 table! {
     use diesel::sql_types::*;
     use postgis_diesel::sql_types::*;
+    use crate::model::types::*;
 
     infection (id) {
         id -> Uuid,
@@ -38,6 +40,7 @@ table! {
 table! {
     use diesel::sql_types::*;
     use postgis_diesel::sql_types::*;
+    use crate::model::types::*;
 
     organization (id) {
         id -> Uuid,
@@ -53,6 +56,7 @@ table! {
 table! {
     use diesel::sql_types::*;
     use postgis_diesel::sql_types::*;
+    use crate::model::types::*;
 
     place (id) {
         id -> Uuid,
@@ -68,12 +72,15 @@ table! {
         maximum_duration -> Int8,
         current_gauge -> Int8,
         location -> Nullable<Geometry>,
+        current_gauge_level -> Gauge_level,
+        current_gauge_percent -> Nullable<Int8>,
     }
 }
 
 table! {
     use diesel::sql_types::*;
     use postgis_diesel::sql_types::*;
+    use crate::model::types::*;
 
     session (id) {
         id -> Uuid,
@@ -91,6 +98,7 @@ table! {
 table! {
     use diesel::sql_types::*;
     use postgis_diesel::sql_types::*;
+    use crate::model::types::*;
 
     user (id) {
         id -> Uuid,

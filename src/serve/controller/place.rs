@@ -17,7 +17,14 @@ pub fn routes(context: Context) -> BoxedFilter<(impl Reply,)> {
         .and(context_filter.clone())
         .and_then(get_one);
 
-    // GET /places -> Vec<Place>
+    // GET /place/owned/<id> -> OwnedPlace
+    let get_owned_place = warp::get()
+        .and(warp::path!("place" / "owned" / Uuid))
+        .and(professional_user_filter(context.clone()))
+        .and(context_filter.clone())
+        .and_then(get_one_owned);
+
+    // GET /places -> Vec<OwnedPlace>
     let get_places = warp::get()
         .and(warp::path!("places"))
         .and(professional_user_filter(context.clone()))
@@ -31,7 +38,7 @@ pub fn routes(context: Context) -> BoxedFilter<(impl Reply,)> {
         .and(context_filter.clone())
         .and_then(search);
 
-    // POST /place/<id> -> Place
+    // POST /place/<id> -> OwnedPlace
     let create_place = warp::post()
         .and(warp::path!("place"))
         .and(professional_user_filter(context.clone()))
@@ -40,7 +47,7 @@ pub fn routes(context: Context) -> BoxedFilter<(impl Reply,)> {
         .and(context_filter.clone())
         .and_then(create);
 
-    // PUT /place/<id> -> Place
+    // PUT /place/<id> -> OwnedPlace
     let set_place = warp::put()
         .and(warp::path!("place" / Uuid))
         .and(professional_user_filter(context.clone()))
@@ -57,6 +64,7 @@ pub fn routes(context: Context) -> BoxedFilter<(impl Reply,)> {
         .and_then(delete);
 
     get_place
+        .or(get_owned_place)
         .or(get_places)
         .or(search_places)
         .or(create_place)
@@ -73,13 +81,29 @@ async fn get_one(place_id: Uuid, context: Context) -> Result<impl Reply, Rejecti
     Ok(warp::reply::json(&place))
 }
 
+async fn get_one_owned(
+    place_id: Uuid,
+    professional: ProfessionalUser,
+    context: Context,
+) -> Result<impl Reply, Rejection> {
+    let connector = context.builder.create();
+
+    let place: OwnedPlace = place::get_with_organization(&connector, &place_id)?.into();
+
+    if place.organization.id != professional.organization.id {
+        return Err(warp::reject::not_found());
+    }
+
+    Ok(warp::reply::json(&place))
+}
+
 async fn get_all(
     professional: ProfessionalUser,
     context: Context,
 ) -> Result<impl Reply, Rejection> {
     let connector = context.builder.create();
 
-    let places: Vec<Place> =
+    let places: Vec<OwnedPlace> =
         place::get_all_with_organization(&connector, &professional.organization.id)?
             .into_iter()
             .map(|p| p.into())
@@ -135,7 +159,7 @@ async fn create(
     )?;
 
     // Retrieve newly created place
-    let place: Place = place::get_with_organization(&connector, &place_id)?.into();
+    let place: OwnedPlace = place::get_with_organization(&connector, &place_id)?.into();
 
     Ok(warp::reply::json(&place))
 }
@@ -171,7 +195,10 @@ async fn update(
         },
     )?;
 
-    Ok(warp::reply())
+    // Retrieve updated place
+    let place: OwnedPlace = place::get_with_organization(&connector, &place_id)?.into();
+
+    Ok(warp::reply::json(&place))
 }
 
 async fn delete(

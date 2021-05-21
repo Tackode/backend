@@ -56,6 +56,7 @@ dependencies = [
  "clap",
  "custom_error",
  "diesel",
+ "diesel-derive-enum",
  "diesel_migrations",
  "dotenv",
  "hex",
@@ -244,6 +245,18 @@ dependencies = [
  "r2d2",
  "serde_json",
  "uuid",
+]
+
+[[package]]
+name = "diesel-derive-enum"
+version = "1.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "70806b70be328e646f243680a3fc93b3cfdd6db373faa5110660a5dd5af243bc"
+dependencies = [
+ "heck",
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]
