@@ -3,6 +3,7 @@ use crate::model::organization::Organization as OrganizationModel;
 use crate::model::place::{Place as PlaceModel, PlaceSearchResult as PlaceSearchResultModel};
 use crate::model::types::GaugeLevel as GaugeLevelModel;
 use crate::types::{Location, Pagination, PaginationQuery};
+use chrono_tz::Tz;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -18,6 +19,7 @@ pub struct Place {
     pub address: Option<String>,
     pub location: Option<Location>,
     pub current_gauge_level: GaugeLevel,
+    pub timezone: Tz,
 }
 
 #[derive(Serialize)]
@@ -36,6 +38,7 @@ pub struct OwnedPlace {
     pub current_gauge: i64,
     pub current_gauge_percent: Option<i64>,
     pub current_gauge_level: GaugeLevel,
+    pub timezone: Tz,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -88,6 +91,7 @@ pub struct PlaceForm {
     pub location: Option<Location>,
     #[validate(range(min = 1, max = 1440))]
     pub maximum_duration: i64,
+    pub timezone: Tz,
 }
 
 impl From<(PlaceModel, OrganizationModel)> for Place {
@@ -101,6 +105,7 @@ impl From<(PlaceModel, OrganizationModel)> for Place {
             address: place.address,
             location: place.location.map(|point| point.into()),
             current_gauge_level: place.current_gauge_level.into(),
+            timezone: place.timezone.tz,
         }
     }
 }
@@ -131,6 +136,7 @@ impl From<(PlaceModel, OrganizationModel)> for OwnedPlace {
             current_gauge: place.current_gauge,
             current_gauge_percent: place.current_gauge_percent,
             current_gauge_level: place.current_gauge_level.into(),
+            timezone: place.timezone.tz,
         }
     }
 }

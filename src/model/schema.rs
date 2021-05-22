@@ -42,6 +42,57 @@ table! {
     use postgis_diesel::sql_types::*;
     use crate::model::types::*;
 
+    opening_hour_computed (id) {
+        id -> Uuid,
+        place_id -> Uuid,
+        opening_timestamp -> Timestamptz,
+        closing_timestamp -> Timestamptz,
+        evacuation_timestamp -> Timestamptz,
+        created_at -> Timestamptz,
+        updated_at -> Timestamptz,
+    }
+}
+
+table! {
+    use diesel::sql_types::*;
+    use postgis_diesel::sql_types::*;
+    use crate::model::types::*;
+
+    opening_hour_date (id) {
+        id -> Uuid,
+        place_id -> Uuid,
+        date -> Date,
+        opening_time -> Nullable<Time>,
+        closure_time -> Nullable<Time>,
+        evacuation_time -> Nullable<Time>,
+        closed -> Bool,
+        created_at -> Timestamptz,
+        updated_at -> Timestamptz,
+    }
+}
+
+table! {
+    use diesel::sql_types::*;
+    use postgis_diesel::sql_types::*;
+    use crate::model::types::*;
+
+    opening_hour_day (id) {
+        id -> Uuid,
+        place_id -> Uuid,
+        day -> Int2,
+        opening_time -> Time,
+        closure_time -> Time,
+        evacuation_time -> Time,
+        created_at -> Timestamptz,
+        updated_at -> Timestamptz,
+    }
+}
+
+table! {
+    use diesel::sql_types::*;
+    use postgis_diesel::sql_types::*;
+    use crate::model::types::*;
+
     organization (id) {
         id -> Uuid,
         user_id -> Uuid,
@@ -74,6 +125,7 @@ table! {
         location -> Nullable<Geometry>,
         current_gauge_level -> Gauge_level,
         current_gauge_percent -> Nullable<Int8>,
+        timezone -> Text,
     }
 }
 
@@ -116,8 +168,21 @@ joinable!(checkin -> place (place_id));
 joinable!(checkin -> session (session_id));
 joinable!(checkin -> user (user_id));
 joinable!(infection -> organization (organization_id));
+joinable!(opening_hour_computed -> place (place_id));
+joinable!(opening_hour_date -> place (place_id));
+joinable!(opening_hour_day -> place (place_id));
 joinable!(organization -> user (user_id));
 joinable!(place -> organization (organization_id));
 joinable!(session -> user (user_id));
 
-allow_tables_to_appear_in_same_query!(checkin, infection, organization, place, session, user,);
+allow_tables_to_appear_in_same_query!(
+    checkin,
+    infection,
+    opening_hour_computed,
+    opening_hour_date,
+    opening_hour_day,
+    organization,
+    place,
+    session,
+    user,
+);

@@ -168,6 +168,7 @@ async fn create(
             address: data.address,
             maximum_duration: data.maximum_duration,
             location: data.location.map(|location| location.into()),
+            timezone: data.timezone.into(),
         },
     )?;
 
@@ -205,6 +206,7 @@ async fn update(
             address: data.address,
             maximum_duration: data.maximum_duration,
             location: data.location.map(|location| location.into()),
+            timezone: data.timezone.into(),
         },
     )?;
 

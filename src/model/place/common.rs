@@ -1,7 +1,7 @@
 use crate::model::organization::Organization;
 
 use super::super::schema::place;
-use super::super::types::{GaugeLevel, Gauge_level};
+use super::super::types::{GaugeLevel, Gauge_level, Timezone};
 use chrono::{DateTime, Utc};
 use postgis::ewkb::Point;
 
@@ -26,6 +26,7 @@ pub struct Place {
     pub location: Option<PointC<Point>>,
     pub current_gauge_level: GaugeLevel,
     pub current_gauge_percent: Option<i64>,
+    pub timezone: Timezone,
 }
 
 pub struct PlaceSearchResult {
@@ -45,6 +46,7 @@ pub struct PlaceInsert {
     pub address: Option<String>,
     pub maximum_duration: i64,
     pub location: Option<PointC<Point>>,
+    pub timezone: Timezone,
 }
 
 #[derive(AsChangeset)]
@@ -58,6 +60,7 @@ pub struct PlaceUpdate {
     pub address: Option<String>,
     pub maximum_duration: i64,
     pub location: Option<PointC<Point>>,
+    pub timezone: Timezone,
 }
 
 #[derive(QueryableByName)]
@@ -93,6 +96,8 @@ pub struct PlaceSearchRow {
     pub current_gauge_level: GaugeLevel,
     #[sql_type = "Nullable<Int8>"]
     pub current_gauge_percent: Option<i64>,
+    #[sql_type = "Text"]
+    pub timezone: Timezone,
 
     // organization table
     #[sql_type = "Uuid"]
@@ -135,6 +140,7 @@ impl From<PlaceSearchRow> for PlaceSearchResult {
                 location: place_row.location,
                 current_gauge_level: place_row.current_gauge_level,
                 current_gauge_percent: place_row.current_gauge_percent,
+                timezone: place_row.timezone,
             },
             organization: Organization {
                 id: place_row.org_id,
