@@ -33,7 +33,7 @@ pub async fn run(builder: ConnectorBuilder) {
     if allowed_origins_str.is_empty() {
         cors = cors.allow_any_origin();
     } else {
-        cors = cors.allow_origins(allowed_origins_str.split(","));
+        cors = cors.allow_origins(allowed_origins_str.split(','));
     }
 
     // Concatenate routes

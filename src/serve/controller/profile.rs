@@ -17,8 +17,8 @@ pub fn routes(context: Context) -> BoxedFilter<(impl Reply,)> {
     // DELETE /profile -> 200
     let delete_profile = warp::delete()
         .and(warp::path!("profile"))
-        .and(public_user_filter(context.clone()))
-        .and(context_filter.clone())
+        .and(public_user_filter(context))
+        .and(context_filter)
         .and_then(delete);
 
     get_profile.or(delete_profile).boxed()

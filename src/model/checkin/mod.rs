@@ -13,30 +13,26 @@ use uuid::Uuid;
 
 pub use common::*;
 
-pub fn get_all_with_user(
-    connector: &Connector,
-    user_id: &Uuid,
-) -> Result<Vec<(Checkin, (Place, Organization))>, Error> {
+type FullCheckin = (Checkin, (Place, Organization));
+
+pub fn get_all_with_user(connector: &Connector, user_id: &Uuid) -> Result<Vec<FullCheckin>, Error> {
     let connection = connector.local.pool.get()?;
 
     dsl::checkin
         .inner_join(place::dsl::place.inner_join(organization::dsl::organization))
         .filter(dsl::user_id.eq(user_id).and(dsl::confirmed.eq(true)))
         .order(dsl::start_timestamp.desc())
-        .load::<(Checkin, (Place, Organization))>(&connection)
+        .load::<FullCheckin>(&connection)
         .map_err(|error| error.into())
 }
 
-pub fn get(
-    connector: &Connector,
-    checkin_id: &Uuid,
-) -> Result<(Checkin, (Place, Organization)), Error> {
+pub fn get(connector: &Connector, checkin_id: &Uuid) -> Result<FullCheckin, Error> {
     let connection = connector.local.pool.get()?;
 
     dsl::checkin
         .inner_join(place::dsl::place.inner_join(organization::dsl::organization))
         .filter(dsl::id.eq(checkin_id))
-        .first::<(Checkin, (Place, Organization))>(&connection)
+        .first::<FullCheckin>(&connection)
         .map_err(|error| error.into())
 }
 
@@ -89,7 +85,7 @@ pub fn leave(connector: &Connector, user_id: &Uuid, checkin_id: &Uuid) -> Result
 
 pub fn enable_potential_infections(
     connector: &Connector,
-    places_ids: &Vec<Uuid>,
+    places_ids: &[Uuid],
     start_timestamp: &DateTime<Utc>,
     end_timestamp: &DateTime<Utc>,
 ) -> Result<(), Error> {
@@ -111,7 +107,7 @@ pub fn enable_potential_infections(
 
 pub fn get_potential_infections(
     connector: &Connector,
-    places_ids: &Vec<Uuid>,
+    places_ids: &[Uuid],
     start_timestamp: &DateTime<Utc>,
     end_timestamp: &DateTime<Utc>,
 ) -> Result<Vec<(Checkin, User, Place)>, Error> {

@@ -18,7 +18,7 @@ pub fn get(connector: &Connector, id: &Uuid) -> Result<User, Error> {
         .map_err(|error| error.into())
 }
 
-pub fn exist_with_login(connector: &Connector, login: &String) -> Result<bool, Error> {
+pub fn exist_with_login(connector: &Connector, login: &str) -> Result<bool, Error> {
     let connection = connector.local.pool.get()?;
 
     dsl::user
@@ -29,7 +29,7 @@ pub fn exist_with_login(connector: &Connector, login: &String) -> Result<bool, E
         .map(|count: i64| count > 0)
 }
 
-pub fn get_with_login(connector: &Connector, login: &String) -> Result<User, Error> {
+pub fn get_with_login(connector: &Connector, login: &str) -> Result<User, Error> {
     let connection = connector.local.pool.get()?;
 
     dsl::user
@@ -88,11 +88,7 @@ pub fn confirm(connector: &Connector, id: &Uuid) -> Result<(), Error> {
         .and_then(|count| is_one(count, "User"))
 }
 
-pub fn set_email_with_login(
-    connector: &Connector,
-    login: &String,
-    email: &String,
-) -> Result<(), Error> {
+pub fn set_email_with_login(connector: &Connector, login: &str, email: &str) -> Result<(), Error> {
     let connection = connector.local.pool.get()?;
 
     diesel::update(dsl::user.filter(dsl::login.eq(login).and(dsl::disabled.eq(false))))

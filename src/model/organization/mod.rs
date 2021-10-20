@@ -21,7 +21,7 @@ pub fn upsert(connector: &Connector, org: &OrganizationUpsert) -> Result<(), Err
         .map_err(|error| error.into())
 }
 
-pub fn set_name(connector: &Connector, id: &Uuid, name: &String) -> Result<(), Error> {
+pub fn set_name(connector: &Connector, id: &Uuid, name: &str) -> Result<(), Error> {
     let connection = connector.local.pool.get()?;
 
     diesel::update(dsl::organization.find(id))

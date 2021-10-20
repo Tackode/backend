@@ -10,7 +10,7 @@ custom_error! { pub Error
     InvalidData = "Invalid data",
     InvalidDataWithDetails {source: ValidationErrors} = "Invalid data: {source}",
     Unauthorized = "Unauthorized",
-    ModelError {source: crate::model::error::Error} = "[Model] {source}",
+    Model {source: crate::model::error::Error} = "[Model] {source}",
     MaximumGaugeReached = "Gauge alert level reached, come back later",
 }
 
@@ -18,7 +18,7 @@ impl reject::Reject for Error {}
 
 impl From<crate::model::error::Error> for Rejection {
     fn from(error: crate::model::error::Error) -> Self {
-        warp::reject::custom(Error::ModelError { source: error })
+        warp::reject::custom(Error::Model { source: error })
     }
 }
 
@@ -45,7 +45,7 @@ pub async fn handle_rejection(err: Rejection) -> Result<impl Reply, Infallible> 
                 Error::InvalidData => StatusCode::BAD_REQUEST,
                 Error::InvalidDataWithDetails { .. } => StatusCode::BAD_REQUEST,
                 Error::Unauthorized => StatusCode::UNAUTHORIZED,
-                Error::ModelError { source } => match source {
+                Error::Model { source } => match source {
                     crate::model::error::Error::NotFound => StatusCode::NOT_FOUND,
                     _ => StatusCode::INTERNAL_SERVER_ERROR,
                 },
@@ -74,7 +74,7 @@ pub async fn handle_rejection(err: Rejection) -> Result<impl Reply, Infallible> 
             code: StatusCode::BAD_REQUEST,
             message: String::from("Bad request"),
         };
-    } else if let Some(_) = err.find::<warp::reject::MethodNotAllowed>() {
+    } else if err.find::<warp::reject::MethodNotAllowed>().is_some() {
         error!("Maybe not found error: {:?}", err);
 
         // Must be a not found response

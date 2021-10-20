@@ -12,10 +12,10 @@ pub fn routes(context: Context) -> BoxedFilter<(impl Reply,)> {
     // PUT /organization {name} -> 200
     warp::put()
         .and(warp::path!("organization"))
-        .and(professional_user_filter(context.clone()))
+        .and(professional_user_filter(context))
         .and(warp::body::content_length_limit(CONTENT_LENGTH_LIMIT))
         .and(warp::body::json())
-        .and(context_filter.clone())
+        .and(context_filter)
         .and_then(update)
         .boxed()
 }

@@ -70,33 +70,33 @@ pub struct CompiledEmail {
 fn precompile_template(data: TemplateData) -> PrecompiledTemplate {
     // Expect template html and txt
     let mut html = html(format!("{}.html", data.name))
-        .expect(&format!("{} HTML template not found", data.name));
+        .unwrap_or_else(|| panic!("{} HTML template not found", data.name));
 
     let text = text(format!("{}.txt", data.name))
-        .expect(&format!("{} Text template not found", data.name));
+        .unwrap_or_else(|| panic!("{} Text template not found", data.name));
 
     // Prepare and replace embeds
-    let embeds =
-        data.embeds
-            .iter()
-            .map(|(filepath, content_type)| {
-                let (new_html, embed) =
-                    embed_in_template(html.clone(), filepath, content_type.clone()).expect(
-                        &format!("{} Embed not found in template {}", filepath, data.name),
-                    );
+    let embeds = data
+        .embeds
+        .iter()
+        .map(|(filepath, content_type)| {
+            let (new_html, embed) = embed_in_template(html.clone(), filepath, content_type.clone())
+                .unwrap_or_else(|| {
+                    panic!("{} Embed not found in template {}", filepath, data.name)
+                });
 
-                // Assign prepared HTML
-                html = new_html;
+            // Assign prepared HTML
+            html = new_html;
 
-                // Return prepared embed
-                embed
-            })
-            .collect();
+            // Return prepared embed
+            embed
+        })
+        .collect();
 
     PrecompiledTemplate {
         name: data.name.to_string(),
-        html: html.clone(),
-        text: text.clone(),
+        html,
+        text,
         subject: data.subject.to_string(),
         utf8_subject: data.utf8_subject,
         embeds,
@@ -182,7 +182,7 @@ fn embed_in_template(
                         body: body.data.into(),
                         filename,
                         content_type,
-                        content_id: content_id.to_string(),
+                        content_id,
                     },
                 )
             }))

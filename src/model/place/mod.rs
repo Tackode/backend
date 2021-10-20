@@ -75,7 +75,7 @@ pub fn refresh_all_gauges(connector: &Connector) -> Result<usize, Error> {
 
             Ok(updated)
         })
-        .map_err(|error| error.into())
+        .map_err(|error| error)
 }
 
 pub fn get_with_organization(
@@ -189,7 +189,7 @@ pub fn search(
 pub fn validate_places_owned(
     connector: &Connector,
     organization_id: &Uuid,
-    places_ids: &Vec<Uuid>,
+    places_ids: &[Uuid],
 ) -> Result<(), Error> {
     let connection = connector.local.pool.get()?;
     let length = places_ids.len() as i64;

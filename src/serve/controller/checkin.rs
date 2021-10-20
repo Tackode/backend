@@ -20,7 +20,7 @@ pub fn routes(context: Context) -> BoxedFilter<(impl Reply,)> {
         .and(warp::header::<String>("user-agent"))
         .and(
             public_user_filter(context.clone())
-                .map(|u| Some(u))
+                .map(Some)
                 .or(warp::any().map(|| None))
                 .unify(),
         )
@@ -44,8 +44,8 @@ pub fn routes(context: Context) -> BoxedFilter<(impl Reply,)> {
     // DELETE /checkins -> 200
     let delete_checkins = warp::delete()
         .and(warp::path!("checkins"))
-        .and(public_user_filter(context.clone()))
-        .and(context_filter.clone())
+        .and(public_user_filter(context))
+        .and(context_filter)
         .and_then(delete_all);
 
     checkin
@@ -125,7 +125,7 @@ async fn create(
             session_id: session.id,
             user_id: user.id,
             start_timestamp: Utc::now(),
-            end_timestamp: Utc::now() + Duration::minutes(data.duration.into()),
+            end_timestamp: Utc::now() + Duration::minutes(data.duration),
             duration: data.duration,
             confirmed: session.confirmed,
             number: data.number,

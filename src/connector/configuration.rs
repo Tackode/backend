@@ -29,14 +29,12 @@ impl ConnectorBuilder {
             })
             .unwrap_or(80);
 
-        let builder = ConnectorBuilder {
+        ConnectorBuilder {
             gauge: GaugeConfiguration {
                 alert: alert_gauge,
                 warning: warning_gauge,
             },
-        };
-
-        builder
+        }
     }
 
     pub fn create(&self) -> Connector {

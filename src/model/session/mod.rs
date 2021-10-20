@@ -12,7 +12,7 @@ pub use common::*;
 pub fn get_unconfirmed(
     connector: &Connector,
     id: &Uuid,
-    hashed_confirmation_token: &String,
+    hashed_confirmation_token: &str,
 ) -> Result<(Session, User), Error> {
     let connection = connector.local.pool.get()?;
 
@@ -32,7 +32,7 @@ pub fn get_unconfirmed(
 pub fn get_confirmed(
     connector: &Connector,
     id: &Uuid,
-    hashed_token: &String,
+    hashed_token: &str,
 ) -> Result<Option<Session>, Error> {
     let connection = connector.local.pool.get()?;
 
@@ -49,13 +49,13 @@ pub fn get_confirmed(
         .map_err(|error| error.into())
 }
 
-pub fn confirm(connector: &Connector, id: &Uuid, hashed_token: &String) -> Result<(), Error> {
+pub fn confirm(connector: &Connector, id: &Uuid, hashed_token: &str) -> Result<(), Error> {
     let connection = connector.local.pool.get()?;
 
     diesel::update(dsl::session.find(id))
         .set(&SessionTokenUpdate {
             hashed_confirmation_token: None,
-            hashed_token: Some(hashed_token.clone()),
+            hashed_token: Some(hashed_token.to_string()),
             confirmed: true,
         })
         .execute(&connection)

@@ -24,7 +24,7 @@ pub fn routes(context: Context) -> BoxedFilter<(impl Reply,)> {
     // POST /logout -> 200
     let logout = warp::post()
         .and(warp::path!("logout"))
-        .and(public_user_filter(context.clone()))
+        .and(public_user_filter(context))
         .and(context_filter.clone())
         .and_then(logout);
 
@@ -33,7 +33,7 @@ pub fn routes(context: Context) -> BoxedFilter<(impl Reply,)> {
         .and(warp::path!("session" / Uuid / "validate"))
         .and(warp::body::content_length_limit(CONTENT_LENGTH_LIMIT))
         .and(warp::body::json())
-        .and(context_filter.clone())
+        .and(context_filter)
         .and_then(validate);
 
     login.or(logout).or(session_validate).boxed()

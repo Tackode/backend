@@ -21,7 +21,7 @@ pub fn public_user_filter(
     context: Context,
 ) -> impl Filter<Extract = (PublicUser,), Error = Rejection> + Clone {
     auth_filter(context, |connector, session| {
-        user::get(&connector, &session.user_id)
+        user::get(connector, &session.user_id)
             .ok()
             .map(|user| PublicUser {
                 session: session.into(),
@@ -34,18 +34,14 @@ pub fn professional_user_filter(
     context: Context,
 ) -> impl Filter<Extract = (ProfessionalUser,), Error = Rejection> + Clone {
     auth_filter(context, |connector, session| {
-        user::get_with_organization(&connector, &session.user_id)
+        user::get_with_organization(connector, &session.user_id)
             .ok()
             .and_then(|(user, organisation)| {
-                if let Some(org) = organisation {
-                    Some(ProfessionalUser {
-                        session: session.into(),
-                        user: user.into(),
-                        organization: org.into(),
-                    })
-                } else {
-                    None
-                }
+                organisation.map(|organisation| ProfessionalUser {
+                    session: session.into(),
+                    user: user.into(),
+                    organization: organisation.into(),
+                })
             })
     })
 }
@@ -91,9 +87,8 @@ fn credentials_to_session(connector: &Connector, credentials: Credentials) -> Op
     Uuid::parse_str(&credentials.username)
         .ok()
         .map(|session_id| (session_id, hash(credentials.password)))
-        .and_then(|(sid, ht)| session::get_confirmed(&connector, &sid, &ht).ok())
+        .and_then(|(sid, ht)| session::get_confirmed(connector, &sid, &ht).ok())
         .flatten()
-        .map(|s| s.into())
 }
 
 struct CredentialsError;

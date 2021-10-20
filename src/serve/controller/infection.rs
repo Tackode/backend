@@ -22,8 +22,8 @@ pub fn routes(context: Context) -> BoxedFilter<(impl Reply,)> {
     // GET /infections -> Vec<Infection>
     let get_infections = warp::get()
         .and(warp::path!("infections"))
-        .and(professional_user_filter(context.clone()))
-        .and(context_filter.clone())
+        .and(professional_user_filter(context))
+        .and(context_filter)
         .and_then(get_all);
 
     create_infection.or(get_infections).boxed()

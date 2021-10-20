@@ -15,7 +15,7 @@ pub async fn create_session(
     // Create session with confirmation token
     let token = generate_token();
     let session: Session = session::insert(
-        &connector,
+        connector,
         &session::SessionInsert {
             user_id,
             description,

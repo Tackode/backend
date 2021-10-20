@@ -60,8 +60,8 @@ pub fn routes(context: Context) -> BoxedFilter<(impl Reply,)> {
     // DELETE /place/<id> -> 200
     let delete_place = warp::delete()
         .and(warp::path!("place" / Uuid))
-        .and(professional_user_filter(context.clone()))
-        .and(context_filter.clone())
+        .and(professional_user_filter(context))
+        .and(context_filter)
         .and_then(delete);
 
     get_place
@@ -132,7 +132,7 @@ async fn search(query: PlaceSearchQuery, context: Context) -> Result<impl Reply,
         query.location.into(),
         query.radius,
         gauge_levels,
-        query.pagination.into(),
+        query.pagination,
     )?;
     let results = PlacesSearchResults {
         pagination,
