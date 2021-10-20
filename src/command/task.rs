@@ -1,13 +1,13 @@
 use crate::connector::ConnectorBuilder;
 
-#[derive(Clap, Debug)]
+#[derive(clap::Parser, Debug)]
 pub struct TaskFlags {
     /// Select which task to run
     #[clap(arg_enum)]
     task_type: TaskType,
 }
 
-#[derive(Clap, Debug)]
+#[derive(clap::ArgEnum, Clone, Debug)]
 enum TaskType {
     /// Refresh all gauges based on checkins
     #[clap(name = "refresh-all-gauges")]

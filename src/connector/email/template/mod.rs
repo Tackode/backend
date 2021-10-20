@@ -153,11 +153,11 @@ impl PrecompiledTemplate {
 }
 
 fn html(filename: String) -> Option<String> {
-    Html::get(&filename).and_then(|template| String::from_utf8(template.into()).ok())
+    Html::get(&filename).and_then(|template| String::from_utf8(template.data.into()).ok())
 }
 
 fn text(filename: String) -> Option<String> {
-    Text::get(&filename).and_then(|template| String::from_utf8(template.into()).ok())
+    Text::get(&filename).and_then(|template| String::from_utf8(template.data.into()).ok())
 }
 
 fn embed_in_template(
@@ -179,7 +179,7 @@ fn embed_in_template(
                 (
                     new_template,
                     Embed {
-                        body: body.into(),
+                        body: body.data.into(),
                         filename,
                         content_type,
                         content_id: content_id.to_string(),

@@ -2,18 +2,18 @@ mod serve;
 mod task;
 
 use crate::connector::ConnectorBuilder;
-use clap::Clap;
+use clap::Parser;
 use task::TaskFlags;
 
 /// Tackode backend CLI - Serve API or execute task
-#[derive(Clap, Debug)]
+#[derive(Parser, Debug)]
 #[clap(version = "2.0.0", author = "Julien Blatecky")]
 struct Opts {
     #[clap(subcommand)]
     main_command: MainCommand,
 }
 
-#[derive(Clap, Debug)]
+#[derive(Parser, Debug)]
 enum MainCommand {
     /// Execute task like updating gauges - to be used with cron job
     #[clap(name = "task")]
