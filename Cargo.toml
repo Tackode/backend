@@ -35,7 +35,7 @@ validator_derive = "0.14"
 warp = { version = "0.3", default-features = false }
 
 [dependencies.lettre]
-version = "0.10.0-rc.3"
+version = "0.10.0-rc.4"
 default-features = false
 features = ["builder", "smtp-transport", "hostname", "tokio1-rustls-tls", "serde", "tracing"]
 
