@@ -39,7 +39,6 @@ pub struct TemplateData {
 
 #[derive(Clone)]
 pub struct PrecompiledTemplate {
-    name: String,
     html: String,
     text: String,
     subject: String,
@@ -94,7 +93,6 @@ fn precompile_template(data: TemplateData) -> PrecompiledTemplate {
         .collect();
 
     PrecompiledTemplate {
-        name: data.name.to_string(),
         html,
         text,
         subject: data.subject.to_string(),
