@@ -1,15 +1,14 @@
 use rand::prelude::*;
 use sha3::{Digest, Sha3_512};
 
-pub fn hash(value: String) -> String {
-    let hash = Sha3_512::new()
-        .chain(value.into_bytes().as_slice())
-        .finalize();
+pub fn hash(value: impl AsRef<[u8]>) -> String {
+    let mut hasher = Sha3_512::new();
+    hasher.update(value);
+    let hash = hasher.finalize();
     hex::encode(hash)
 }
 
 pub fn generate_token() -> String {
     let random_bytes: Vec<u8> = (0..64).map(|_| random::<u8>()).collect();
-    let hash = Sha3_512::new().chain(&random_bytes.as_slice()).finalize();
-    hex::encode(hash)
+    hash(random_bytes)
 }
