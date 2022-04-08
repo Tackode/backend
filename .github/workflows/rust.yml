@@ -60,7 +60,7 @@ jobs:
             sh -c "/volume/build-musl.sh && chown -R $(id -u):$(id -g) ./target /root/.cargo/registry /root/.cargo/git"
 
       - name: Archive production artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: tackode-backend
           path: dist/backend
