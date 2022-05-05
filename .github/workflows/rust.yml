@@ -94,7 +94,7 @@ jobs:
 
       - name: Docker build and push
         if: github.event_name != 'pull_request'
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3
         with:
           context: ./dist
           file: ./dist/Dockerfile
