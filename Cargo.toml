@@ -10,7 +10,7 @@ edition = "2021"
 base64 = "0.13"
 chrono = { version = "0.4", features = ["serde"] }
 chrono-tz = { version = "0.6", features = ["serde"] }
-clap = { version = "3.0.0-rc", features = ["derive", "env"] }
+clap = { version = "3.1.16", features = ["derive", "env"] }
 custom_error = "1.9"
 diesel = { version = "1.4", features = ["postgres", "chrono", "r2d2", "serde_json", "uuidv07"] }
 diesel-derive-enum = { version = "1.1", features = ["postgres"] }
